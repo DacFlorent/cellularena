@@ -192,10 +192,55 @@ class Player {
                         }
                     }
                 }
+
+                for (Organ organ : game.myOrgans) {
+                    System.err.println("Organ ID: " + organ.id + ", Type: " + organ.organType +
+                            ", Position: (" + organ.pos.x + ", " + organ.pos.y + ")");
+                }
                 // Write an action using System.out.println()
                 // To debug: System.err.println("Debug messages...");
                 System.out.println("WAIT");
             }
         }
+    }
+}
+enum Dir {
+    N(0, -1),  // y diminue de 1
+    E(1, 0),   // x augmente de 1
+    S(0, 1),   // y augmente de 1
+    W(-1, 0);  // X diminue de 1
+
+    private final int dx;
+    private final int dy;
+
+    Dir(int dx, int dy) {
+        this.dx = dx;
+        this.dy = dy;
+    }
+
+    public int getDx() {
+        return dx;
+    }
+
+    public int getDy() {
+        return dy;
+    }
+
+    public Dir turnLeft() {
+        return switch (this) {
+            case N -> W;
+            case W -> S;
+            case S -> E;
+            case E -> N;
+        };
+    }
+
+    public Dir turnRight() {
+        return switch (this) {
+            case N -> E;
+            case E -> S;
+            case S -> W;
+            case W -> N;
+        };
     }
 }
