@@ -184,63 +184,31 @@ class Player {
             int requiredActionsCount = in.nextInt(); // your number of organisms, output an action for each one in any order
             for (int i = 0; i < requiredActionsCount; i++) {
 
+                int proteinX = -1;
+                int proteinY = -1;
+                boolean foundProteinA = false;
+
                 for (int y = 0; y < game.grid.height; y++) {
                     for (int x = 0; x < game.grid.width; x++) {
                         Cell cell = game.grid.getCell(x, y);
-                        if (cell != null && cell.protein != null) {
-                            System.err.println("Protéine " + cell.protein + " trouvée en position (" + x + ", " + y + ")");
+                        if (cell != null && cell.protein != null && cell.protein.equals("A")) {
+                            proteinX = x;
+                            proteinY = y;
+                            foundProteinA = true;
+                            break;
                         }
                     }
+                    if (foundProteinA) break;
                 }
-
-                for (Organ organ : game.myOrgans) {
-                    System.err.println("Organ ID: " + organ.id + ", Type: " + organ.organType +
-                            ", Position: (" + organ.pos.x + ", " + organ.pos.y + ")");
+                if (foundProteinA) {
+                    int organId = 1;
+                    System.out.println("GROW " + organId + " " + proteinX + " " + proteinY + " BASIC");
+                } else {
+                    int organId = 1;
+                    // Mouvement simple vers (17, 8) si aucune protéine A n'est trouvée
+                    System.out.println("GROW " + organId + " 17 8 BASIC");
                 }
-                // Write an action using System.out.println()
-                // To debug: System.err.println("Debug messages...");
-                System.out.println("WAIT");
             }
         }
-    }
-}
-enum Dir {
-    N(0, -1),  // y diminue de 1
-    E(1, 0),   // x augmente de 1
-    S(0, 1),   // y augmente de 1
-    W(-1, 0);  // X diminue de 1
-
-    private final int dx;
-    private final int dy;
-
-    Dir(int dx, int dy) {
-        this.dx = dx;
-        this.dy = dy;
-    }
-
-    public int getDx() {
-        return dx;
-    }
-
-    public int getDy() {
-        return dy;
-    }
-
-    public Dir turnLeft() {
-        return switch (this) {
-            case N -> W;
-            case W -> S;
-            case S -> E;
-            case E -> N;
-        };
-    }
-
-    public Dir turnRight() {
-        return switch (this) {
-            case N -> E;
-            case E -> S;
-            case S -> W;
-            case W -> N;
-        };
     }
 }
