@@ -83,6 +83,141 @@ class Grid {
         cells[pos.x + width * pos.y] = cell;
     }
 }
+class Action {
+
+    public static ActionType decideActionType(Organ organ, Game game) {
+        // Vérifie si l'organ est sur une protéine
+        Cell currentCell = game.grid.getCell(organ.pos);
+        if (currentCell != null && currentCell.protein != null) {
+            return ActionType.HARVESTER;
+        }
+
+        // Vérifie si l'organ est adjacent à une protéine
+        if (isAdjacentToProtein(organ.pos, game)) {
+            return ActionType.HARVESTER;
+        }
+
+        // Logique par défaut : action BASIC
+        return ActionType.BASIC;
+    }
+    private static Pos findAdjacentProtein(Pos pos, Game game) {
+        int[][] directions = {{0, 1}, {0, -1}, {1, 0}, {-1, 0}};
+        for (int[] dir : directions) {
+            int newX = pos.x + dir[0];
+            int newY = pos.y + dir[1];
+            if (newX >= 0 && newY >= 0 && newX < game.grid.width && newY < game.grid.height) {
+                Cell adjacentCell = game.grid.getCell(newX, newY);
+                if (adjacentCell != null && adjacentCell.protein != null) {
+                    return new Pos(newX, newY);
+                }
+            }
+        }
+        return null; // Aucun voisin contenant une protéine
+    }
+    private static String calculateDirection(Pos from, Pos to) {
+        if (to.x > from.x) return "E"; // Vers l'est
+        if (to.x < from.x) return "W"; // Vers l'ouest
+        if (to.y > from.y) return "S"; // Vers le sud
+        if (to.y < from.y) return "N"; // Vers le nord
+        throw new IllegalArgumentException("Invalid positions for direction calculation");
+    }
+    private static boolean isAdjacentToProtein(Pos pos, Game game) {
+        // Vérifie les positions adjacentes : haut, bas, gauche, droite
+        int[][] directions = {{0, 1}, {0, -1}, {1, 0}, {-1, 0}};
+
+        for (int[] dir : directions) {
+            int newX = pos.x + dir[0];
+            int newY = pos.y + dir[1];
+            if (newX >= 0 && newY >= 0 && newX < game.grid.width && newY < game.grid.height) {
+                Cell adjacentCell = game.grid.getCell(newX, newY);
+                if (adjacentCell != null && adjacentCell.protein != null) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public static String generateAction(Organ organ, Game game, ActionType actionType) {
+        switch (actionType) {
+            case HARVESTER:
+                return handleHarvesterAction(organ, game);
+            case BASIC:
+                return handleBasicAction(organ, game);
+            default:
+                throw new IllegalArgumentException("Unknown action type: " + actionType);
+        }
+    }
+    private static Pos getNextStepTowardsProtein(Pos currentPos, Pos targetPos) {
+        int dx = targetPos.x - currentPos.x;
+        int dy = targetPos.y - currentPos.y;
+
+        if (Math.abs(dx) > Math.abs(dy)) {
+            return new Pos(currentPos.x + Integer.signum(dx), currentPos.y);
+        } else {
+            return new Pos(currentPos.x, currentPos.y + Integer.signum(dy));
+        }
+    }
+    private static String handleHarvesterAction(Organ organ, Game game) {
+        Pos proteinPos = findAdjacentProtein(organ.pos, game);
+
+        if (proteinPos != null) {
+            // Récolte en direction de la protéine adjacente
+            String direction = calculateDirection(organ.pos, proteinPos);
+            return "HARVEST " + organ.id + " " + direction;
+        }
+
+        // Si aucune protéine adjacente n'est trouvée (devrait être rare)
+        throw new IllegalStateException("No adjacent protein found for HARVESTER action");
+    }
+
+    private static String handleBasicAction(Organ organ, Game game) {
+        Pos targetPos = findClosestProtein(organ.pos, game);
+
+        if (targetPos != null) {
+            // Calculer la prochaine étape
+            Pos nextStep = getNextStepTowardsProtein(organ.pos, targetPos);
+
+            if (isAdjacentToProtein(nextStep, game)) {
+                // Si la prochaine étape est adjacente, basculer en mode HARVESTER
+                return "HARVEST " + organ.id + " " + calculateDirection(organ.pos, targetPos);
+            }
+
+            // Sinon, continuer le mouvement étape par étape
+            return "GROW " + organ.id + " " + nextStep.x + " " + nextStep.y + " BASIC";
+        }
+
+        // Si aucune protéine n'est trouvée, continuer par défaut
+        return "GROW " + organ.id + " 17 8 BASIC";
+    }
+
+    private static Pos findClosestProtein(Pos organPos, Game game) {
+        Pos closestProteinPos = null;
+        int minDistance = Integer.MAX_VALUE;
+
+        for (int y = 0; y < game.grid.height; y++) {
+            for (int x = 0; x < game.grid.width; x++) {
+                Cell cell = game.grid.getCell(x, y);
+                if (cell != null && cell.protein != null) {
+                    int distance = Math.abs(organPos.x - x) + Math.abs(organPos.y - y);
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        closestProteinPos = new Pos(x, y);
+                    }
+                }
+            }
+        }
+        return closestProteinPos;
+    }
+}
+
+
+
+enum ActionType {
+    BASIC,
+    HARVESTER,
+}
 
 class Game {
     Grid grid;
@@ -183,31 +318,13 @@ class Player {
             game.oppProteins.put(D, oppD);
             int requiredActionsCount = in.nextInt(); // your number of organisms, output an action for each one in any order
             for (int i = 0; i < requiredActionsCount; i++) {
+                Organ organ = game.myOrgans.get(i);
 
-                int proteinX = -1;
-                int proteinY = -1;
-                boolean foundProteinA = false;
+                // Appel à la méthode statique dans Action
+                ActionType actionType = Action.decideActionType(organ, game);
 
-                for (int y = 0; y < game.grid.height; y++) {
-                    for (int x = 0; x < game.grid.width; x++) {
-                        Cell cell = game.grid.getCell(x, y);
-                        if (cell != null && cell.protein != null && cell.protein.equals("A")) {
-                            proteinX = x;
-                            proteinY = y;
-                            foundProteinA = true;
-                            break;
-                        }
-                    }
-                    if (foundProteinA) break;
-                }
-                if (foundProteinA) {
-                    int organId = 1;
-                    System.out.println("GROW " + organId + " " + proteinX + " " + proteinY + " BASIC");
-                } else {
-                    int organId = 1;
-                    // Mouvement simple vers (17, 8) si aucune protéine A n'est trouvée
-                    System.out.println("GROW " + organId + " 17 8 BASIC");
-                }
+                String action = Action.generateAction(organ, game, actionType);
+                System.out.println(action);
             }
         }
     }
