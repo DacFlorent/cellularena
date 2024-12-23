@@ -171,17 +171,19 @@ class Action {
 		Pos organPos = organ.pos;
 		Pos closestProteinPos = organPos.findClosestProtein(game);
 
-		if (closestProteinPos != null) {
-			Direction direction = organPos.findDirectionTo(closestProteinPos);
-			System.err.println("Direction calculée pour HARVESTER: " + direction);
+		// Si l'organe n'est pas encore sur la protéine, il se déplace vers elle
+		Direction direction = organPos.findDirectionTo(closestProteinPos);
+		System.err.println("Direction calculée pour HARVESTER: " + direction);
 
-			Pos newPos = new Pos(closestProteinPos.x, closestProteinPos.y);
-			updateOrganPosition(organ, newPos, game);
+		// Déplacer l'organe vers la position de la protéine
+		Pos newPos = new Pos(closestProteinPos.x, closestProteinPos.y);
+		updateOrganPosition(organ, newPos, game);
 
-			return "GROW " + organ.id + " " + closestProteinPos.x + " " + closestProteinPos.y + " HARVESTER " + direction.name();
-		}
+		// Log supplémentaire pour confirmer la mise à jour de la position
+		System.err.println("Nouvelle position de l'organe " + organ.id + " : (" + newPos.x + ", " + newPos.y + ")");
 
-		return "WAIT " + organ.id + " 16 3 BASIC " + organ.dir;
+		// L'organe a récolté la protéine, donc on l'indique dans l'action
+		return "GROW " + organ.id + " " + closestProteinPos.x + " " + closestProteinPos.y + " HARVESTER " + direction.name();
 	}
 
 	public static String handleBasicAction(Organ organ, Game game) {
