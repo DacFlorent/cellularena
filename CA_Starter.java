@@ -154,7 +154,6 @@ class Game {
         }
     }
     void displayProteinsOnGrid() {
-        // Parcourt toutes les cellules du grid
         for (int y = 0; y < grid.height; y++) {
             for (int x = 0; x < grid.width; x++) {
                 Cell cell = grid.getCell(x, y);
@@ -165,7 +164,6 @@ class Game {
         }
     }
     void displayOrgansOnGrid() {
-        // Parcourt toutes les cellules du grid
         for (int y = 0; y < grid.height; y++) {
             for (int x = 0; x < grid.width; x++) {
                 Cell cell = grid.getCell(x, y);
