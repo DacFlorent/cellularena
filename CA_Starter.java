@@ -18,7 +18,8 @@ class Pos {
 
 	// Méthode pour calculer la distance entre deux positions
 	public int calculateDistance(Pos other) {
-		return Math.abs(this.x - other.x) + Math.abs(this.y - other.y);
+		int distance = Math.abs(this.x - other.x) + Math.abs(this.y - other.y);
+		return distance;
 	}
 
 	// Getter et Setter pour organPos
@@ -44,13 +45,12 @@ class Pos {
 		int minDistance = Integer.MAX_VALUE;
 		Pos closestPos = null;
 
-		// Parcours de la grille pour trouver la protéine la plus proche
 		for (int y = 0; y < game.grid.height; y++) {
 			for (int x = 0; x < game.grid.width; x++) {
 				Cell cell = game.grid.getCell(x, y);
 				if (cell != null && cell.protein != null) {
 					Pos proteinPos = new Pos(x, y);
-					int distance = this.calculateDistance(proteinPos); // Calcul de la distance
+					int distance = this.calculateDistance(proteinPos);
 					if (distance < minDistance) {
 						minDistance = distance;
 						closestPos = proteinPos;
@@ -58,10 +58,33 @@ class Pos {
 				}
 			}
 		}
-		return closestPos; // Retourne la position de la protéine la plus proche
+
+		// Après avoir trouvé la protéine la plus proche, déterminer la direction
+		if (closestPos != null) {
+			String direction = findDirectionToProtein(closestPos);
+		}
+
+		return closestPos;
+	}
+
+	public String findDirectionToProtein(Pos proteinPos) {
+		if (proteinPos == null) {
+			return "UNKNOWN";  // Aucun déplacement possible si aucune protéine n'est trouvée
+		}
+
+		// Calculer la direction par rapport à l'organe
+		if (proteinPos.x < this.x) {
+			return "W"; // OUEST
+		} else if (proteinPos.x > this.x) {
+			return "E"; // EST
+		} else if (proteinPos.y < this.y) {
+			return "N"; // NORD
+		} else if (proteinPos.y > this.y) {
+			return "S"; // SUD
+		}
+		return "UNKNOWN"; // En cas d'égalité (même position)
 	}
 }
-
 class Organ {
 
 	int id;
@@ -158,14 +181,17 @@ class Action {
 		if (closestProteinPos != null) {
 			// Calcul de la distance entre l'organe et la protéine la plus proche
 			int distance = organPos.calculateDistance(closestProteinPos);
-
-			System.err.println("Distance entre l'organe et la protéine la plus proche : " + distance);
+			System.err.println("Protéine la plus proche trouvée à : (" + closestProteinPos.x + ", " + closestProteinPos.y + ")");
+			System.err.println("Position de l'organe: (" + organPos.x + ", " + organPos.y + ")");
+			System.err.println("Distance calculée: " + distance);
 
 			// Si la distance est égale à 2, l'action devient immédiatement HARVESTER
 			if (distance == 2) {
+				System.err.println("Action HARVESTER pour l'organe " + organ.id);
 				return ActionType.HARVESTER;
 			} else {
 				// Sinon, l'action reste BASIC
+				System.err.println("Action BASIC pour l'organe " + organ.id);
 				return ActionType.BASIC;
 			}
 		}
@@ -175,6 +201,7 @@ class Action {
 	}
 
 	public static String generateAction(Organ organ, Game game, ActionType actionType) {
+		System.err.println("Action type générée pour l'organe " + organ.id + ": " + actionType);
 		switch (actionType) {
 			case HARVESTER:
 				return handleHarvesterAction(organ, game);
@@ -184,70 +211,36 @@ class Action {
 		}
 	}
 
-	public static String handleBasicAction(Organ organ, Game game) {
-		Pos organPos = organ.pos;
-		Pos closestProteinPos = organPos.findClosestProtein(game);
-
-		if (closestProteinPos != null) {
-			moveOrgan(organ, "BASIC"); // Déplacement simplifié basé sur l'axe X
-			return "GROW " + organ.id + " " + closestProteinPos.x + " " + closestProteinPos.y + " BASIC " + organ.dir;
-		}
-
-		moveOrgan(organ, "BASIC");  // Action par défaut si aucune protéine trouvée
-		return "GROW " + organ.id + " 16 3 BASIC " + organ.dir;
-	}
-
 	public static String handleHarvesterAction(Organ organ, Game game) {
 		Pos organPos = organ.pos;
 		Pos closestProteinPos = organPos.findClosestProtein(game);
 
 		if (closestProteinPos != null) {
-			// Actions spécifiques à HARVESTER quand l'organe est proche d'une protéine
-			moveOrgan(organ, "HARVESTER");
-			return "GROW " + (organ.id - 1) + " " + closestProteinPos.x + " " + closestProteinPos.y + " HARVESTER " + organ.dir;
+			// Récupérer la direction vers la protéine la plus proche
+			String direction = organPos.findDirectionToProtein(closestProteinPos);
+			System.err.println("Direction calculée pour HARVESTER: " + direction);
+
+			// Utiliser la direction obtenue pour l'action HARVESTER
+			return "GROW " + organ.id + " " + closestProteinPos.x + " " + closestProteinPos.y + " HARVESTER " + direction;
 		}
 
-		// Si aucune protéine n'est trouvée, revenir à l'action de base
-		return "GROW " + organ.id + " 16 3 BASIC " + organ.dir;
+		// Si aucune protéine n'est trouvée, utiliser l'action de base avec la direction de l'organe
+		return "GROW " + organ.id + " 16 3 BASIC " + organ.dir;  // Action par défaut si aucune protéine trouvée
 	}
 
-	private static void moveOrgan(Organ organ, String actionType) {
-		int deltaX = 0, deltaY = 0;
+	public static String handleBasicAction(Organ organ, Game game) {
+		Pos organPos = organ.pos;
+		Pos closestProteinPos = organPos.findClosestProtein(game);
 
-		if (actionType.equals("BASIC")) {
-			// Si le type d'action est BASIC, on déplace l'organe uniquement sur l'axe x
-			deltaX = 1;  // Déplacement de 1 sur l'axe x
-			// deltaY reste 0, donc l'organe ne bouge pas sur l'axe y
-		} else if (actionType.equals("HARVESTER")) {
-			// Si le type d'action est HARVESTER, on déplace l'organe en fonction de sa direction
-			switch (organ.dir) {
-				case "N":
-					deltaY = 1;  // Déplacement vers le haut (Nord)
-					break;
-				case "S":
-					deltaY = -1;  // Déplacement vers le bas (Sud)
-					break;
-				case "E":
-					deltaX = 1;  // Déplacement vers la droite (Est)
-					break;
-				case "W":
-					deltaX = -1;  // Déplacement vers la gauche (Ouest)
-					break;
-				default:
-					// Si aucune direction n'est spécifiée, on ne bouge pas
-					break;
-			}
+		if (closestProteinPos != null) {
+			String direction = "N";
+			return "GROW " + organ.id + " " + closestProteinPos.x + " " + closestProteinPos.y + " BASIC " + direction;
 		}
-
-		// Mise à jour de la position de l'organe
-		organ.pos = new Pos(organ.pos.x + deltaX, organ.pos.y + deltaY);
-
-		// Vérification de la mise à jour de la position
-		System.err.println("Organe " + organ.id + " déplacé vers : (" + organ.pos.x + ", " + organ.pos.y + ")");
+		return "GROW " + organ.id + " 16 2 BASIC " + organ.dir;  // Action par défaut si aucune protéine trouvée
 	}
 }
 
-enum ActionType {
+	enum ActionType {
 	BASIC,
 	HARVESTER,
 }
@@ -305,39 +298,36 @@ class Game {
  * Grow and multiply your organisms to end up larger than your opponent.
  **/
 class Player {
-
-	// Protein types
 	static final String A = "A";
 	static final String B = "B";
 	static final String C = "C";
 	static final String D = "D";
-
 	static final String WALL = "WALL";
 
 	public static void main(String args[]) {
 		Scanner in = new Scanner(System.in);
-		int width = in.nextInt(); // columns in the game grid
-		int height = in.nextInt(); // rows in the game grid
+		int width = in.nextInt();
+		int height = in.nextInt();
 
 		Game game = new Game(width, height);
 
-		// game loop
 		while (true) {
 			game.reset();
 
 			int entityCount = in.nextInt();
 			for (int i = 0; i < entityCount; i++) {
 				int x = in.nextInt();
-				int y = in.nextInt(); // grid coordinate
-				String type = in.next(); // WALL, ROOT, BASIC, TENTACLE, HARVESTER, SPORER, A, B, C, D
-				int owner = in.nextInt(); // 1 if your organ, 0 if enemy organ, -1 if neither
-				int organId = in.nextInt(); // id of this entity if it's an organ, 0 otherwise
-				String organDir = in.next(); // N,E,S,W or X if not an organ
+				int y = in.nextInt();
+				String type = in.next();
+				int owner = in.nextInt();
+				int organId = in.nextInt();
+				String organDir = in.next();
 				int organParentId = in.nextInt();
 				int organRootId = in.nextInt();
 
 				Pos pos = new Pos(x, y);
 				Cell cell = null;
+
 				if (type.equals(WALL)) {
 					cell = new Cell(pos, true, null, null);
 				} else if (Arrays.asList(A, B, C, D).contains(type)) {
@@ -358,28 +348,15 @@ class Player {
 				}
 			}
 
-			int myProteinCount = in.nextInt();
-			for (int i = 0; i < myProteinCount; i++) {
-				String protein = in.next();
-				int count = in.nextInt();
-				game.addMyProtein(protein, count);
-			}
-
-			int oppProteinCount = in.nextInt();
-			for (int i = 0; i < oppProteinCount; i++) {
-				String protein = in.next();
-				int count = in.nextInt();
-				game.addOppProtein(protein, count);
-			}
-
 			int myA = in.nextInt();
 			int myB = in.nextInt();
 			int myC = in.nextInt();
-			int myD = in.nextInt(); // your protein stock
+			int myD = in.nextInt();
 			int oppA = in.nextInt();
 			int oppB = in.nextInt();
 			int oppC = in.nextInt();
-			int oppD = in.nextInt(); // opponent's protein stock
+			int oppD = in.nextInt();
+
 			game.myProteins.put(A, myA);
 			game.myProteins.put(B, myB);
 			game.myProteins.put(C, myC);
@@ -388,7 +365,8 @@ class Player {
 			game.oppProteins.put(B, oppB);
 			game.oppProteins.put(C, oppC);
 			game.oppProteins.put(D, oppD);
-			int requiredActionsCount = in.nextInt(); // your number of organisms, output an action for each one in any order
+
+			int requiredActionsCount = in.nextInt();
 			for (int i = 0; i < requiredActionsCount; i++) {
 				for (Organ organ : game.myOrgans) {
 					ActionType actionType = Action.decideActionType(organ, game);
