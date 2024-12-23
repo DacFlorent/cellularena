@@ -96,7 +96,8 @@ class Cell {
 class Grid {
 
 	Cell[] cells;
-	int width, height;
+	int width;
+	int height;
 
 	Grid(int width, int height) {
 		this.width = width;
@@ -127,7 +128,7 @@ class Grid {
 class Action {
 
 	public static ActionType decideActionType(Organ organ, Game game) {
-		Pos organPos = organ.pos;
+		Pos organPos = organ.getPosition();
 		Pos closestProteinPos = organPos.findClosestProtein(game);
 
 		if (closestProteinPos != null) {
@@ -161,14 +162,13 @@ class Action {
 
 	public static void updateOrganPosition(Organ organ, Pos newPos, Game game) {
 		game.organMap.remove(organ.id);
-
 		organ.setPosition(newPos);
-
 		game.organMap.put(organ.id, organ);
+		System.err.println("Organe " + organ.id + " mis à jour à la position : (" + newPos.x + ", " + newPos.y + ")");
 	}
 
 	public static String handleHarvesterAction(Organ organ, Game game) {
-		Pos organPos = organ.pos;
+		Pos organPos = organ.getPosition();
 		Pos closestProteinPos = organPos.findClosestProtein(game);
 
 		Direction direction = organPos.findDirectionTo(closestProteinPos);
@@ -178,7 +178,6 @@ class Action {
 		updateOrganPosition(organ, newPos, game);
 
 		System.err.println("Nouvelle position de l'organe " + organ.id + " : (" + newPos.x + ", " + newPos.y + ")");
-
 
 		return "GROW " + organ.id + " " + closestProteinPos.x + " " + closestProteinPos.y + " HARVESTER " + direction.name();
 	}
@@ -325,6 +324,7 @@ class Player {
 			int requiredActionsCount = in.nextInt();
 			for (int i = 0; i < requiredActionsCount; i++) {
 				for (Organ organ : game.myOrgans) {
+					System.err.println("Traitement de l'organe ID: " + organ.id);
 					ActionType actionType = Action.decideActionType(organ, game);
 					String action = Action.generateAction(organ, game, actionType);
 					System.out.println(action);
