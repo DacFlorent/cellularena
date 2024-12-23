@@ -7,40 +7,16 @@ class Pos {
 	int x;
 	int y;
 
-	private Pos organPos;
-	private Pos proteinPos;
-
-	// Constructeur de la classe Pos
 	Pos(int x, int y) {
 		this.x = x;
 		this.y = y;
 	}
 
-	// Méthode pour calculer la distance entre deux positions
+
 	public int calculateDistance(Pos other) {
-		int distance = Math.abs(this.x - other.x) + Math.abs(this.y - other.y);
-		return distance;
+		return Math.abs(this.x - other.x) + Math.abs(this.y - other.y);
 	}
 
-	// Getter et Setter pour organPos
-	public Pos getOrganPos() {
-		return organPos;
-	}
-
-	public void setOrganPos(Pos organPos) {
-		this.organPos = organPos;
-	}
-
-	// Getter et Setter pour proteinPos
-	public Pos getProteinPos() {
-		return proteinPos;
-	}
-
-	public void setProteinPos(Pos proteinPos) {
-		this.proteinPos = proteinPos;
-	}
-
-	// Méthode pour obtenir la position de l'organe ou de la protéine la plus proche
 	public Pos findClosestProtein(Game game) {
 		int minDistance = Integer.MAX_VALUE;
 		Pos closestPos = null;
@@ -58,31 +34,18 @@ class Pos {
 				}
 			}
 		}
-
-		// Après avoir trouvé la protéine la plus proche, déterminer la direction
-		if (closestPos != null) {
-			String direction = findDirectionToProtein(closestPos);
-		}
-
 		return closestPos;
 	}
 
-	public String findDirectionToProtein(Pos proteinPos) {
-		if (proteinPos == null) {
-			return "UNKNOWN";  // Aucun déplacement possible si aucune protéine n'est trouvée
-		}
+	public Direction findDirectionTo(Pos target) {
+		if (target == null) return Direction.N;
 
-		// Calculer la direction par rapport à l'organe
-		if (proteinPos.x < this.x) {
-			return "W"; // OUEST
-		} else if (proteinPos.x > this.x) {
-			return "E"; // EST
-		} else if (proteinPos.y < this.y) {
-			return "N"; // NORD
-		} else if (proteinPos.y > this.y) {
-			return "S"; // SUD
-		}
-		return "UNKNOWN"; // En cas d'égalité (même position)
+		if (target.x < this.x) return Direction.W;
+		if (target.x > this.x) return Direction.E;
+		if (target.y < this.y) return Direction.N;
+		if (target.y > this.y) return Direction.S;
+
+		return Direction.N;
 	}
 }
 class Organ {
@@ -95,7 +58,6 @@ class Organ {
 	String organType;
 	String dir;
 
-	// Constructeur d'organe
 	Organ(int id, int owner, int parentId, int rootId, Pos pos, String organType, String dir) {
 		this.id = id;
 		this.owner = owner;
@@ -106,12 +68,10 @@ class Organ {
 		this.dir = dir;
 	}
 
-	// Accès direct à la position de l'organe
 	public Pos getPosition() {
 		return pos;
 	}
 
-	// Mise à jour de la position de l'organe
 	public void setPosition(Pos newPosition) {
 		this.pos = newPosition;
 	}
@@ -124,9 +84,6 @@ class Cell {
 	String protein;
 	Organ organ;
 
-	Cell(Pos pos) {
-		this(pos, false, null, null);
-	}
 
 	Cell(Pos pos, boolean isWall, String protein, Organ organ) {
 		this.pos = pos;
@@ -162,10 +119,6 @@ class Grid {
 		return null;
 	}
 
-	Cell getCell(Pos pos) {
-		return getCell(pos.x, pos.y);
-	}
-
 	void setCell(Pos pos, Cell cell) {
 		cells[pos.x + width * pos.y] = cell;
 	}
@@ -173,35 +126,30 @@ class Grid {
 
 class Action {
 
-	// Détermine le type d'action à effectuer pour un organe
 	public static ActionType decideActionType(Organ organ, Game game) {
 		Pos organPos = organ.pos;
 		Pos closestProteinPos = organPos.findClosestProtein(game);
 
 		if (closestProteinPos != null) {
-			// Calcul de la distance entre l'organe et la protéine la plus proche
 			int distance = organPos.calculateDistance(closestProteinPos);
 			System.err.println("Protéine la plus proche trouvée à : (" + closestProteinPos.x + ", " + closestProteinPos.y + ")");
 			System.err.println("Position de l'organe: (" + organPos.x + ", " + organPos.y + ")");
 			System.err.println("Distance calculée: " + distance);
 
-			// Si la distance est égale à 2, l'action devient immédiatement HARVESTER
 			if (distance == 2) {
 				System.err.println("Action HARVESTER pour l'organe " + organ.id);
 				return ActionType.HARVESTER;
 			} else {
-				// Sinon, l'action reste BASIC
 				System.err.println("Action BASIC pour l'organe " + organ.id);
 				return ActionType.BASIC;
 			}
 		}
 
-		// Si aucune protéine n'est trouvée, revenir à l'action par défaut
 		return ActionType.BASIC;
 	}
 
 	public static String generateAction(Organ organ, Game game, ActionType actionType) {
-		System.err.println("Action type générée pour l'organe " + organ.id + ": " + actionType);
+
 		switch (actionType) {
 			case HARVESTER:
 				return handleHarvesterAction(organ, game);
@@ -211,21 +159,29 @@ class Action {
 		}
 	}
 
+	public static void updateOrganPosition(Organ organ, Pos newPos, Game game) {
+		game.organMap.remove(organ.id);
+
+		organ.setPosition(newPos);
+
+		game.organMap.put(organ.id, organ);
+	}
+
 	public static String handleHarvesterAction(Organ organ, Game game) {
 		Pos organPos = organ.pos;
 		Pos closestProteinPos = organPos.findClosestProtein(game);
 
 		if (closestProteinPos != null) {
-			// Récupérer la direction vers la protéine la plus proche
-			String direction = organPos.findDirectionToProtein(closestProteinPos);
+			Direction direction = organPos.findDirectionTo(closestProteinPos);
 			System.err.println("Direction calculée pour HARVESTER: " + direction);
 
-			// Utiliser la direction obtenue pour l'action HARVESTER
-			return "GROW " + organ.id + " " + closestProteinPos.x + " " + closestProteinPos.y + " HARVESTER " + direction;
+			Pos newPos = new Pos(closestProteinPos.x, closestProteinPos.y);
+			updateOrganPosition(organ, newPos, game);
+
+			return "GROW " + organ.id + " " + closestProteinPos.x + " " + closestProteinPos.y + " HARVESTER " + direction.name();
 		}
 
-		// Si aucune protéine n'est trouvée, utiliser l'action de base avec la direction de l'organe
-		return "GROW " + organ.id + " 16 3 BASIC " + organ.dir;  // Action par défaut si aucune protéine trouvée
+		return "WAIT " + organ.id + " 16 3 BASIC " + organ.dir;
 	}
 
 	public static String handleBasicAction(Organ organ, Game game) {
@@ -233,16 +189,17 @@ class Action {
 		Pos closestProteinPos = organPos.findClosestProtein(game);
 
 		if (closestProteinPos != null) {
-			String direction = "N";
-			return "GROW " + organ.id + " " + closestProteinPos.x + " " + closestProteinPos.y + " BASIC " + direction;
-		}
-		return "GROW " + organ.id + " 16 2 BASIC " + organ.dir;  // Action par défaut si aucune protéine trouvée
-	}
-}
+			Direction direction = organPos.findDirectionTo(closestProteinPos);
 
-	enum ActionType {
-	BASIC,
-	HARVESTER,
+			Pos newPos = new Pos(closestProteinPos.x, closestProteinPos.y);
+			updateOrganPosition(organ, newPos, game);
+
+			return "GROW " + organ.id + " " + closestProteinPos.x + " " + closestProteinPos.y + " BASIC " + direction.name();
+		}
+
+		return "GROW " + organ.id + " 16 2 BASIC " + organ.dir;
+	}
+
 }
 
 class Game {
@@ -272,26 +229,26 @@ class Game {
 		oppProteins.clear();
 	}
 
-	void addMyOrgan(Organ organ) {
-		myOrgans.add(organ);  // Ajouter un organe à l'équipe du joueur
-		organMap.put(organ.id, organ);  // Ajouter l'organe à la map d'organes
-	}
-
-	// Ajoute un organe à l'équipe adverse
-	void addOppOrgan(Organ organ) {
-		oppOrgans.add(organ);  // Ajouter un organe à l'équipe adverse
-		organMap.put(organ.id, organ);  // Ajouter l'organe à la map d'organes
-	}
-
-	// Ajoute une protéine à l'équipe du joueur
-	void addMyProtein(String protein, int count) {
-		myProteins.put(protein, count);  // Ajouter une protéine avec un nombre donné
-	}
-
-	// Ajoute une protéine à l'équipe adverse
-	void addOppProtein(String protein, int count) {
-		oppProteins.put(protein, count);  // Ajouter une protéine avec un nombre donné
-	}
+//	void addMyOrgan(Organ organ) {
+//		myOrgans.add(organ);  // Ajouter un organe à l'équipe du joueur
+//		organMap.put(organ.id, organ);  // Ajouter l'organe à la map d'organes
+//	}
+//
+//	// Ajoute un organe à l'équipe adverse
+//	void addOppOrgan(Organ organ) {
+//		oppOrgans.add(organ);  // Ajouter un organe à l'équipe adverse
+//		organMap.put(organ.id, organ);  // Ajouter l'organe à la map d'organes
+//	}
+//
+//	// Ajoute une protéine à l'équipe du joueur
+//	void addMyProtein(String protein, int count) {
+//		myProteins.put(protein, count);  // Ajouter une protéine avec un nombre donné
+//	}
+//
+//	// Ajoute une protéine à l'équipe adverse
+//	void addOppProtein(String protein, int count) {
+//		oppProteins.put(protein, count);  // Ajouter une protéine avec un nombre donné
+//	}
 }
 
 /**
@@ -380,4 +337,9 @@ class Player {
 
 enum Direction {
 	N, E, S, W;
+}
+
+enum ActionType {
+	BASIC,
+	HARVESTER,
 }
