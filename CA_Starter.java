@@ -126,6 +126,7 @@ class Grid {
 }
 
 class Action {
+	private static StringBuilder actionLogs = new StringBuilder();
 
 	public static ActionType decideActionType(Organ organ, Game game) {
 		Pos organPos = organ.getPosition();
@@ -133,15 +134,19 @@ class Action {
 
 		if (closestProteinPos != null) {
 			int distance = organPos.calculateDistance(closestProteinPos);
-			System.err.println("Protéine la plus proche trouvée à : (" + closestProteinPos.x + ", " + closestProteinPos.y + ")");
-			System.err.println("Position de l'organe: (" + organPos.x + ", " + organPos.y + ")");
-			System.err.println("Distance calculée: " + distance);
+			actionLogs.append("Protéine la plus proche trouvée à : (")
+				.append(closestProteinPos.x).append(", ")
+				.append(closestProteinPos.y).append(")\n");
+			actionLogs.append("Position de l'organe: (")
+				.append(organPos.x).append(", ")
+				.append(organPos.y).append(")\n");
+			actionLogs.append("Distance calculée: ").append(distance).append("\n");
 
 			if (distance == 2) {
-				System.err.println("Action HARVESTER pour l'organe " + organ.id);
+				actionLogs.append("Action HARVESTER pour l'organe ").append(organ.id).append("\n");
 				return ActionType.HARVESTER;
 			} else {
-				System.err.println("Action BASIC pour l'organe " + organ.id);
+				actionLogs.append("Action BASIC pour l'organe ").append(organ.id).append("\n");
 				return ActionType.BASIC;
 			}
 		}
@@ -164,7 +169,10 @@ class Action {
 		game.organMap.remove(organ.id);
 		organ.setPosition(newPos);
 		game.organMap.put(organ.id, organ);
-		System.err.println("Organe " + organ.id + " mis à jour à la position : (" + newPos.x + ", " + newPos.y + ")");
+		actionLogs.append("Organe ").append(organ.id)
+			.append(" mis à jour à la position : (")
+			.append(newPos.x).append(", ")
+			.append(newPos.y).append(")\n");
 	}
 
 	public static String handleHarvesterAction(Organ organ, Game game) {
@@ -172,12 +180,13 @@ class Action {
 		Pos closestProteinPos = organPos.findClosestProtein(game);
 
 		Direction direction = organPos.findDirectionTo(closestProteinPos);
-		System.err.println("Direction calculée pour HARVESTER: " + direction);
+		actionLogs.append("Direction calculée pour HARVESTER: ").append(direction).append("\n");
 
-		Pos newPos = new Pos(closestProteinPos.x, closestProteinPos.y);
+		Pos newPos = calculateNewPosition(organPos, direction);
 		updateOrganPosition(organ, newPos, game);
 
-		System.err.println("Nouvelle position de l'organe " + organ.id + " : (" + newPos.x + ", " + newPos.y + ")");
+		actionLogs.append("Nouvelle position de l'organe ").append(organ.id)
+			.append(" : (").append(newPos.x).append(", ").append(newPos.y).append(")\n");
 
 		return "GROW " + organ.id + " " + closestProteinPos.x + " " + closestProteinPos.y + " HARVESTER " + direction.name();
 	}
@@ -189,13 +198,43 @@ class Action {
 		if (closestProteinPos != null) {
 			Direction direction = organPos.findDirectionTo(closestProteinPos);
 
-			Pos newPos = new Pos(closestProteinPos.x, closestProteinPos.y);
+			Pos newPos = calculateNewPosition(organPos, direction);
+
 			updateOrganPosition(organ, newPos, game);
 
 			return "GROW " + organ.id + " " + closestProteinPos.x + " " + closestProteinPos.y + " BASIC " + direction.name();
 		}
 
 		return "GROW " + organ.id + " 16 2 BASIC " + organ.dir;
+	}
+
+	private static Pos calculateNewPosition(Pos currentPos, Direction direction) {
+		int newX = currentPos.x;
+		int newY = currentPos.y;
+
+		switch (direction) {
+			case N:
+				newY--; // Déplacer vers le nord
+				break;
+			case S:
+				newY++; // Déplacer vers le sud
+				break;
+			case E:
+				newX++; // Déplacer vers l'est
+				break;
+			case W:
+				newX--; // Déplacer vers l'ouest
+				break;
+		}
+
+		return new Pos(newX, newY);
+	}
+
+	public static void displayActionLogs() {
+		if (actionLogs.length() > 0) {
+			System.err.println(actionLogs.toString());
+			actionLogs.setLength(0);
+		}
 	}
 
 }
@@ -328,6 +367,7 @@ class Player {
 					ActionType actionType = Action.decideActionType(organ, game);
 					String action = Action.generateAction(organ, game, actionType);
 					System.out.println(action);
+					Action.displayActionLogs();
 				}
 			}
 		}
