@@ -160,36 +160,29 @@ class Action {
 		return ActionType.BASIC;
 	}
 
-	public static String generateAction(Organ organ, Game game, ActionType actionType) {
-		String action = generateGrowAction(organ, game);
+	public static String generateAction(Organ organ, Game game) {
+		// Récupérer la position actuelle de l'organe
+		Pos organPos = organ.getPosition();
 
-		if (actionType == ActionType.HARVESTER) {
+		// Trouver la position de la première protéine autour de l'organe
+		Pos proteinPos = findProteinPosition(organ, game);
 
-			action = "HARVESTER " + action;
-		} else {
-			action = "BASIC " + action;
-		}
-		return action;
-	}
-
-	private static String generateGrowAction(Organ organ, Game game) {
-		int organId = organ.id;
-		Pos targetPos = findProteinPosition(organ, game);  // Chercher la position de la protéine
-
-		// Si aucune protéine n'a été trouvée, utiliser la méthode findClosestProtein
-		if (targetPos == null) {
-			targetPos = organ.pos.findClosestProtein(game);  // Appel à la méthode findClosestProtein sur la position de l'organe
-
-			// Si aucune protéine n'est encore trouvée, on retourne une action par défaut
-			if (targetPos == null) {
-				return "GROW " + organId + " 16 2 BASIC N";  // Aucune protéine, action par défaut
-			}
+		// Si aucune protéine n'est trouvée, on utilise la méthode findClosestProtein
+		if (proteinPos == null) {
+			proteinPos = organ.pos.findClosestProtein(game);
 		}
 
-		// Trouver la direction pour atteindre la position cible
+		// Déterminer l'action à effectuer en fonction de la présence ou non d'une protéine
+		String actionType = (proteinPos != null) ? "BASIC" : "HARVESTER";  // Si une protéine est trouvée, "BASIC", sinon "HARVESTER"
+
+		// Déterminer la direction vers la position de la protéine ou utiliser la position actuelle si aucune protéine n'est trouvée
+		Pos targetPos = (proteinPos != null) ? proteinPos : organPos;  // Utiliser la position actuelle si aucune protéine
 		Direction direction = findDirectionToGrow(organ, targetPos, game);
 
-		return "GROW " + organId + " " + targetPos.x + " " + targetPos.y + " BASIC " + direction;
+		// Générer la ligne d'action au format "GROW organId x y ACTION direction"
+		String actionResult = "GROW " + organ.id + " " + targetPos.x + " " + targetPos.y + " " + actionType + " " + direction;
+
+		return actionResult;
 	}
 
 	// Méthode pour trouver la position de la première protéine (dynamique)
@@ -391,12 +384,13 @@ class Player {
 			game.oppProteins.put(D, oppD);
 
 			int requiredActionsCount = in.nextInt();
-			for (Organ organ : game.myOrgans) {
-				Action.measureSurroundingEntities(organ, game);
-				ActionType actionType = Action.decideActionType(true, false);
-				String action = Action.generateAction(organ, game, actionType);
-				System.out.println(action);
-				Action.displayActionLogs();
+			for (int i = 0; i < requiredActionsCount; i++) {
+				for (Organ organ : game.myOrgans) {
+					Action.measureSurroundingEntities(organ, game);
+					String action = Action.generateAction(organ, game);
+					System.out.println(action);
+					Action.displayActionLogs();
+				}
 			}
 		}
 	}
