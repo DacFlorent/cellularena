@@ -113,13 +113,8 @@ class Grid {
 }
 
 class Action {
-	private static StringBuilder actionLogs = new StringBuilder();
 
 	public static void measureSurroundingEntities(Organ organ, Game game) {
-
-		actionLogs.setLength(0);
-
-
 		Pos organPos = organ.getPosition();
 		boolean proteinFoundFirstLoop = false;
 
@@ -128,25 +123,22 @@ class Action {
 			Cell nextCell = game.grid.getCell(nextPos.x, nextPos.y);
 
 			if (nextCell != null) {
-				actionLogs.append("Direction : ").append(dir).append(" à (")
-					.append(nextPos.x).append(", ").append(nextPos.y).append(")\n");
+				System.err.println("Direction : " + dir + " à (" + nextPos.x + ", " + nextPos.y + ")");
 
 				if (nextCell.isWall) {
-					actionLogs.append("WALL\n");
+					System.err.println("WALL");
 				} else if (nextCell.organ != null) {
-					actionLogs.append("Organ find (ID: ").append(nextCell.organ.id).append(").\n");
+					System.err.println("Organ find (ID: " + nextCell.organ.id + ").");
 				} else if (nextCell.protein != null) {
-					actionLogs.append("Protein find : ").append(nextCell.protein).append(".\n");
+					System.err.println("Protein find : " + nextCell.protein + ".");
 					proteinFoundFirstLoop = true;
 				} else {
-					actionLogs.append("No entity.\n");
+					System.err.println("No entity.");
 				}
 			}
 		}
 
 		ActionType actionType = decideActionType(proteinFoundFirstLoop);
-
-		displayActionLogs();
 	}
 
 	public static ActionType decideActionType(boolean proteinFoundFirstLoop) {
@@ -157,9 +149,6 @@ class Action {
 	}
 
 	public static String generateAction(Organ organ, Game game) {
-
-		actionLogs.setLength(0);
-
 		Pos organPos = organ.getPosition();
 		boolean proteinFoundFirstLoop = false;
 		measureSurroundingEntities(organ, game);
@@ -266,12 +255,6 @@ class Action {
 		}
 
 		return new Pos(newX, newY);
-	}
-
-	public static void displayActionLogs() {
-		if (actionLogs.length() > 0) {
-			System.err.println(actionLogs.toString());
-		}
 	}
 }
 
