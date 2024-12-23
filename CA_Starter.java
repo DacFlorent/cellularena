@@ -161,22 +161,20 @@ class Action {
 	}
 
 	public static String generateAction(Organ organ, Game game) {
-		// Récupérer la position actuelle de l'organe
 		Pos organPos = organ.getPosition();
+		Pos proteinPos = findProteinPosition(organ, game);  // Recherche immédiate d'une protéine dans l'environnement proche
 
-		// Trouver la position de la première protéine autour de l'organe
-		Pos proteinPos = findProteinPosition(organ, game);
-
-		// Si aucune protéine n'est trouvée, on utilise la méthode findClosestProtein
+		// Si aucune protéine n'est trouvée, chercher la protéine la plus proche
 		if (proteinPos == null) {
 			proteinPos = organ.pos.findClosestProtein(game);
 		}
 
-		// Déterminer l'action à effectuer en fonction de la présence ou non d'une protéine
-		String actionType = (proteinPos != null) ? "BASIC" : "HARVESTER";  // Si une protéine est trouvée, "BASIC", sinon "HARVESTER"
+		// Si une protéine a été trouvée, l'action est de se rapprocher pour récolter (HARVESTER)
+		// Si aucune protéine n'est trouvée, l'action est "BASIC" pour se déplacer ou se multiplier.
+		String actionType = (proteinPos != null) ? "HARVESTER" : "BASIC";
 
-		// Déterminer la direction vers la position de la protéine ou utiliser la position actuelle si aucune protéine n'est trouvée
-		Pos targetPos = (proteinPos != null) ? proteinPos : organPos;  // Utiliser la position actuelle si aucune protéine
+		// Déterminer la direction vers la position de la protéine ou rester sur la position actuelle si aucune protéine n'est trouvée
+		Pos targetPos = (proteinPos != null) ? proteinPos : organPos;  // Utiliser la position actuelle si aucune protéine n'est trouvée
 		Direction direction = findDirectionToGrow(organ, targetPos, game);
 
 		// Générer la ligne d'action au format "GROW organId x y ACTION direction"
@@ -224,34 +222,34 @@ class Action {
 		}
 	}
 
-	private static String determineTargetType(Organ organ, Game game) {
-		Pos organPos = organ.getPosition();
-
-		for (Direction dir : Direction.values()) {
-			Pos nextPos = calculateNewPosition(organPos, dir);
-			Cell nextCell = game.grid.getCell(nextPos.x, nextPos.y);
-
-			if (nextCell != null) {
-				if (nextCell.isWall) {
-					return "WALL";
-				}
-				if (nextCell.organ != null && nextCell.organ.organType.equals("ROOT")) {
-					return "ROOT";
-				}
-				if (nextCell.organ != null && nextCell.organ.organType.equals("BASIC")) {
-					return "BASIC";
-				}
-				if (nextCell.organ != null && nextCell.organ.organType.equals("HARVESTER")) {
-					return "HARVESTER";
-				}
-				if (nextCell.protein != null && nextCell.protein.equals("A")) {
-					return "A";
-				}
-			}
-		}
-
-		return "BASIC";
-	}
+//	private static String determineTargetType(Organ organ, Game game) {
+//		Pos organPos = organ.getPosition();
+//
+//		for (Direction dir : Direction.values()) {
+//			Pos nextPos = calculateNewPosition(organPos, dir);
+//			Cell nextCell = game.grid.getCell(nextPos.x, nextPos.y);
+//
+//			if (nextCell != null) {
+//				if (nextCell.isWall) {
+//					return "WALL";
+//				}
+//				if (nextCell.organ != null && nextCell.organ.organType.equals("ROOT")) {
+//					return "ROOT";
+//				}
+//				if (nextCell.organ != null && nextCell.organ.organType.equals("BASIC")) {
+//					return "BASIC";
+//				}
+//				if (nextCell.organ != null && nextCell.organ.organType.equals("HARVESTER")) {
+//					return "HARVESTER";
+//				}
+//				if (nextCell.protein != null && nextCell.protein.equals("A")) {
+//					return "A";
+//				}
+//			}
+//		}
+//
+//		return "BASIC";
+//	}
 
 	private static Pos calculateNewPosition(Pos currentPos, Direction direction) {
 		int newX = currentPos.x;
