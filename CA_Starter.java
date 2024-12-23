@@ -109,26 +109,21 @@ class Game {
         organMap.clear();
     }
     void printGrid() {
-        // Trouver un organe parmi ceux de votre équipe
         Organ currentOrgan = null;
         if (!myOrgans.isEmpty()) {
             currentOrgan = myOrgans.get(myOrgans.size() - 1);  // Dernier organe créé
         }
 
-        // Si un organe a été trouvé, on vérifie la zone autour de lui
         if (currentOrgan != null) {
             int organX = currentOrgan.pos.x;
             int organY = currentOrgan.pos.y;
 
-            // Vérifier les entités autour de l'organe sur une zone n+2
             for (int y = organY - 2; y <= organY + 2; y++) {
                 for (int x = organX - 2; x <= organX + 2; x++) {
-                    // Vérifier si la position est dans les limites de la grille
                     if (x >= 0 && x < grid.width && y >= 0 && y < grid.height) {
                         Cell cell = grid.getCell(x, y);
                         String entityType = "";
 
-                        // Vérification des entités dans la cellule
                         if (cell.isWall) {
                             entityType = "WALL";
                         } else if (cell.protein != null) {
@@ -137,7 +132,6 @@ class Game {
                             entityType = "Organ: " + cell.organ.organType + " (ID: " + cell.organ.id + ")";
                         } else entityType = "EMPTY";
 
-                        // Affichage de l'entité dans la zone d'exploration
                         System.err.print("[" + x + "," + y + "]: " + entityType + "   ");
                     }
                 }
@@ -150,51 +144,43 @@ class Game {
 }
 
 class Action {
-
-    // Cette méthode inspecte la grille autour de l'organe ROOT
     String performAction(Game game) {
-        // Chercher un organe
         Organ currentOrgan = null;
         if (!game.myOrgans.isEmpty()) {
             currentOrgan = game.myOrgans.get(game.myOrgans.size() - 1);
         }
 
-        // Si l'organe ROOT est trouvé, on détermine la zone autour de lui
         if (currentOrgan != null) {
             int organX = currentOrgan.pos.x;
             int organY = currentOrgan.pos.y;
             boolean proteinFound = false;
 
-            // Définir le rayon de recherche (n + 2) autour de l'organe
-            int radius = 2; // n + 2, par exemple ici on utilise 2 pour simplification
+            int radius = 2; // n + 2
 
-            // Parcourir les cellules dans un rayon autour de l'organe (organX, organY)
             for (int y = organY - radius; y <= organY + radius; y++) {
                 for (int x = organX - radius; x <= organX + radius; x++) {
-                    // Vérifier si les coordonnées sont valides dans la grille
                     if (x >= 0 && x < game.grid.width && y >= 0 && y < game.grid.height) {
                         Cell cell = game.grid.getCell(x, y);
 
-                        // Vérifier si une protéine est présente dans cette cellule
+
                         if (cell.protein != null) {
                             proteinFound = true;
                             System.err.println("Protein found at position: [" + x + ", " + y + "] - Type: " + cell.protein);
-                            // Retourner l'action de récolte de la protéine
+
                             return "GROW 1 17 2 HARVESTER E"; // Action de collecte de la protéine
                         }
                     }
                 }
             }
 
-            // Si aucune protéine n'est trouvée, effectuer une action par défaut
             if (!proteinFound) {
                 return "GROW 1 17 2 BASIC";
             }
         } else {
-            return "GROW 1 17 2 BASIC"; // Si l'organe est introuvable
+            return "GROW 1 17 2 BASIC";
         }
 
-        return "GROW 1 17 2 BASIC"; // Action par défaut si aucune protéine trouvée
+        return "GROW 1 17 2 BASIC";
     }
 }
 
@@ -272,11 +258,11 @@ class Player {
             game.oppProteins.put(D, oppD);
             int requiredActionsCount = in.nextInt();
             for (int i = 0; i < requiredActionsCount; i++) {
-                game.printGrid();  // Affichage de la grille pour débogage
+                game.printGrid();
 
-                // Appeler performAction pour obtenir l'action à effectuer
+
                 String actionToPerform = action.performAction(game);
-                System.out.println(actionToPerform);  // Affiche l'action choisie
+                System.out.println(actionToPerform);
             }
         }
     }
