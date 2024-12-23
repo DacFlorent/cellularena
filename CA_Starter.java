@@ -18,14 +18,12 @@ class Pos {
 		int minDistance = Integer.MAX_VALUE;
 		Pos closestPos = null;
 
-		// On parcourt la grille pour trouver toutes les protéines
 		for (int y = 0; y < game.grid.height; y++) {
 			for (int x = 0; x < game.grid.width; x++) {
 				Cell cell = game.grid.getCell(x, y);
 				if (cell != null && cell.protein != null) {
 					Pos proteinPos = new Pos(x, y);
 					int distance = this.calculateDistance(proteinPos);
-					// On garde la protéine la plus proche
 					if (distance < minDistance) {
 						minDistance = distance;
 						closestPos = proteinPos;
@@ -118,6 +116,10 @@ class Action {
 	private static StringBuilder actionLogs = new StringBuilder();
 
 	public static void measureSurroundingEntities(Organ organ, Game game) {
+
+		actionLogs.setLength(0);
+
+
 		Pos organPos = organ.getPosition();
 		boolean proteinFoundFirstLoop = false;
 
@@ -129,63 +131,57 @@ class Action {
 				actionLogs.append("Direction : ").append(dir).append(" à (")
 					.append(nextPos.x).append(", ").append(nextPos.y).append(")\n");
 
-				// Vérifications pour la cellule
 				if (nextCell.isWall) {
 					actionLogs.append("WALL\n");
 				} else if (nextCell.organ != null) {
 					actionLogs.append("Organ find (ID: ").append(nextCell.organ.id).append(").\n");
 				} else if (nextCell.protein != null) {
-					actionLogs.append("Protéine find : ").append(nextCell.protein).append(".\n");
-					if (!proteinFoundFirstLoop) {
-						proteinFoundFirstLoop = true;
-					}
+					actionLogs.append("Protein find : ").append(nextCell.protein).append(".\n");
+					proteinFoundFirstLoop = true;
 				} else {
-					actionLogs.append("No entity here.\n");
+					actionLogs.append("No entity.\n");
 				}
 			}
 		}
 
-		ActionType actionType = decideActionType(proteinFoundFirstLoop, false);
+		ActionType actionType = decideActionType(proteinFoundFirstLoop);
 
 		displayActionLogs();
 	}
 
-	public static ActionType decideActionType(boolean proteinFoundFirstLoop, boolean proteinFoundSecondLoop) {
+	public static ActionType decideActionType(boolean proteinFoundFirstLoop) {
 		if (proteinFoundFirstLoop) {
-			return ActionType.BASIC;
-		}
-		if (proteinFoundSecondLoop) {
 			return ActionType.HARVESTER;
 		}
 		return ActionType.BASIC;
 	}
 
 	public static String generateAction(Organ organ, Game game) {
+
+		actionLogs.setLength(0);
+
 		Pos organPos = organ.getPosition();
-		Pos proteinPos = findProteinPosition(organ, game);  // Recherche immédiate d'une protéine dans l'environnement proche
+		boolean proteinFoundFirstLoop = false;
+		measureSurroundingEntities(organ, game);
 
-		// Si aucune protéine n'est trouvée, chercher la protéine la plus proche
-		if (proteinPos == null) {
-			proteinPos = organ.pos.findClosestProtein(game);
+		if (proteinFoundFirstLoop) {
+			Pos targetPos = findProteinPosition(organ, game);
+			Direction direction = findDirectionToGrow(organ, targetPos, game);
+			return "GROW " + organ.id + " " + targetPos.x + " " + targetPos.y + " HARVESTER " + direction;
+		} else {
+			Pos targetPos = organPos.findClosestProtein(game);
+			String actionType = "BASIC";
+
+			targetPos = (targetPos != null) ? targetPos : organPos;
+
+			Direction direction = findDirectionToGrow(organ, targetPos, game);
+
+			return "GROW " + organ.id + " " + targetPos.x + " " + targetPos.y + " " + actionType + " " + direction;
 		}
-
-		// Si une protéine a été trouvée, l'action est de se rapprocher pour récolter (HARVESTER)
-		// Si aucune protéine n'est trouvée, l'action est "BASIC" pour se déplacer ou se multiplier.
-		String actionType = (proteinPos != null) ? "HARVESTER" : "BASIC";
-
-		// Déterminer la direction vers la position de la protéine ou rester sur la position actuelle si aucune protéine n'est trouvée
-		Pos targetPos = (proteinPos != null) ? proteinPos : organPos;  // Utiliser la position actuelle si aucune protéine n'est trouvée
-		Direction direction = findDirectionToGrow(organ, targetPos, game);
-
-		// Générer la ligne d'action au format "GROW organId x y ACTION direction"
-		String actionResult = "GROW " + organ.id + " " + targetPos.x + " " + targetPos.y + " " + actionType + " " + direction;
-
-		return actionResult;
 	}
 
-	// Méthode pour trouver la position de la première protéine (dynamique)
 	private static Pos findProteinPosition(Organ organ, Game game) {
-		Pos organPos = organ.getPosition(); // Position actuelle de l'organisme
+		Pos organPos = organ.getPosition();
 
 		// Recherche de la première protéine autour de l'organisme
 		for (Direction dir : Direction.values()) {
@@ -197,7 +193,6 @@ class Action {
 				return nextPos;  // Retourner la position de la protéine trouvée
 			}
 		}
-
 		return null;  // Retourner null si aucune protéine n'est trouvée
 	}
 
@@ -222,34 +217,34 @@ class Action {
 		}
 	}
 
-//	private static String determineTargetType(Organ organ, Game game) {
-//		Pos organPos = organ.getPosition();
-//
-//		for (Direction dir : Direction.values()) {
-//			Pos nextPos = calculateNewPosition(organPos, dir);
-//			Cell nextCell = game.grid.getCell(nextPos.x, nextPos.y);
-//
-//			if (nextCell != null) {
-//				if (nextCell.isWall) {
-//					return "WALL";
-//				}
-//				if (nextCell.organ != null && nextCell.organ.organType.equals("ROOT")) {
-//					return "ROOT";
-//				}
-//				if (nextCell.organ != null && nextCell.organ.organType.equals("BASIC")) {
-//					return "BASIC";
-//				}
-//				if (nextCell.organ != null && nextCell.organ.organType.equals("HARVESTER")) {
-//					return "HARVESTER";
-//				}
-//				if (nextCell.protein != null && nextCell.protein.equals("A")) {
-//					return "A";
-//				}
-//			}
-//		}
-//
-//		return "BASIC";
-//	}
+	//	private static String determineTargetType(Organ organ, Game game) {
+	//		Pos organPos = organ.getPosition();
+	//
+	//		for (Direction dir : Direction.values()) {
+	//			Pos nextPos = calculateNewPosition(organPos, dir);
+	//			Cell nextCell = game.grid.getCell(nextPos.x, nextPos.y);
+	//
+	//			if (nextCell != null) {
+	//				if (nextCell.isWall) {
+	//					return "WALL";
+	//				}
+	//				if (nextCell.organ != null && nextCell.organ.organType.equals("ROOT")) {
+	//					return "ROOT";
+	//				}
+	//				if (nextCell.organ != null && nextCell.organ.organType.equals("BASIC")) {
+	//					return "BASIC";
+	//				}
+	//				if (nextCell.organ != null && nextCell.organ.organType.equals("HARVESTER")) {
+	//					return "HARVESTER";
+	//				}
+	//				if (nextCell.protein != null && nextCell.protein.equals("A")) {
+	//					return "A";
+	//				}
+	//			}
+	//		}
+	//
+	//		return "BASIC";
+	//	}
 
 	private static Pos calculateNewPosition(Pos currentPos, Direction direction) {
 		int newX = currentPos.x;
@@ -276,7 +271,6 @@ class Action {
 	public static void displayActionLogs() {
 		if (actionLogs.length() > 0) {
 			System.err.println(actionLogs.toString());
-			actionLogs.setLength(0);  // Réinitialiser les logs après affichage
 		}
 	}
 }
@@ -387,7 +381,6 @@ class Player {
 					Action.measureSurroundingEntities(organ, game);
 					String action = Action.generateAction(organ, game);
 					System.out.println(action);
-					Action.displayActionLogs();
 				}
 			}
 		}
