@@ -174,6 +174,12 @@ class Action {
 		Direction direction = organPos.findDirectionTo(closestProteinPos);
 		System.err.println("Direction calculée pour HARVESTER: " + direction);
 
+		Pos newPos = new Pos(closestProteinPos.x, closestProteinPos.y);
+		updateOrganPosition(organ, newPos, game);
+
+		System.err.println("Nouvelle position de l'organe " + organ.id + " : (" + newPos.x + ", " + newPos.y + ")");
+
+
 		return "GROW " + organ.id + " " + closestProteinPos.x + " " + closestProteinPos.y + " HARVESTER " + direction.name();
 	}
 
