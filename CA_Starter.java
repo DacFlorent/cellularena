@@ -83,6 +83,37 @@ class Grid {
     void setCell(Pos pos, Cell cell) {
         cells[pos.x + width * pos.y] = cell;
     }
+    void displayGrid() {
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                Cell cell = cells[x + width * y];
+                StringBuilder cellInfo = new StringBuilder();
+
+                // Pos Cell
+                cellInfo.append("Cell(").append(x).append(", ").append(y).append("): ");
+
+                // check WALL
+                if (cell.isWall) {
+                    cellInfo.append("WALL ");
+                }
+
+                // Check PROT
+                if (cell.protein != null) {
+                    cellInfo.append("Protein: ").append(cell.protein).append(" ");
+                }
+
+                // CHECK ORGAN
+                if (cell.organ != null) {
+                    cellInfo.append("Organ ID: ").append(cell.organ.id)
+                            .append(", Type: ").append(cell.organ.organType)
+                            .append(", Owner: ").append(cell.organ.owner)
+                            .append(", Direction: ").append(cell.organ.dir);
+                }
+
+                System.err.println(cellInfo.toString());
+            }
+        }
+    }
 }
 
 class Game {
@@ -92,6 +123,7 @@ class Game {
     List<Organ> myOrgans;
     List<Organ> oppOrgans;
     Map<Integer, Organ> organMap;
+    Map<String, Pos> proteinPositions;
 
     Game(int width, int height) {
         grid = new Grid(width, height);
@@ -100,6 +132,7 @@ class Game {
         myOrgans = new ArrayList<>();
         oppOrgans = new ArrayList<>();
         organMap = new HashMap<>();
+        proteinPositions = new HashMap<>();
     }
 
     void reset() {
@@ -107,81 +140,49 @@ class Game {
         myOrgans.clear();
         oppOrgans.clear();
         organMap.clear();
+        proteinPositions.clear();
     }
-    void printGrid() {
-        Organ currentOrgan = null;
-        if (!myOrgans.isEmpty()) {
-            currentOrgan = myOrgans.get(myOrgans.size() - 1);  // Dernier organe créé
-        }
-
-        if (currentOrgan != null) {
-            int organX = currentOrgan.pos.x;
-            int organY = currentOrgan.pos.y;
-
-            for (int y = organY - 2; y <= organY + 2; y++) {
-                for (int x = organX - 2; x <= organX + 2; x++) {
-                    if (x >= 0 && x < grid.width && y >= 0 && y < grid.height) {
-                        Cell cell = grid.getCell(x, y);
-                        String entityType = "";
-
-                        if (cell.isWall) {
-                            entityType = "WALL";
-                        } else if (cell.protein != null) {
-                            entityType = "Protein: " + cell.protein;
-                        } else if (cell.organ != null) {
-                            entityType = "Organ: " + cell.organ.organType + " (ID: " + cell.organ.id + ")";
-                        } else entityType = "EMPTY";
-
-                        System.err.print("[" + x + "," + y + "]: " + entityType + "   ");
-                    }
-                }
-                System.err.println();
-            }
-        } else {
-            System.err.println("No organ found.");
-        }
-    }
-}
-
-class Action {
-    String performAction(Game game) {
-        Organ currentOrgan = null;
-        if (!game.myOrgans.isEmpty()) {
-            currentOrgan = game.myOrgans.get(game.myOrgans.size() - 1);
-        }
-
-        if (currentOrgan != null) {
-            int organX = currentOrgan.pos.x;
-            int organY = currentOrgan.pos.y;
-            boolean proteinFound = false;
-
-            int radius = 2; // n + 2
-
-            for (int y = organY - radius; y <= organY + radius; y++) {
-                for (int x = organX - radius; x <= organX + radius; x++) {
-                    if (x >= 0 && x < game.grid.width && y >= 0 && y < game.grid.height) {
-                        Cell cell = game.grid.getCell(x, y);
-
-
-                        if (cell.protein != null) {
-                            proteinFound = true;
-                            System.err.println("Protein found at position: [" + x + ", " + y + "] - Type: " + cell.protein);
-
-                            return "GROW 1 17 2 HARVESTER E"; // Action de collecte de la protéine
-                        }
-                    }
+    void updateProteinPositions() {
+        proteinPositions.clear();
+        for (int y = 0; y < grid.height; y++) {
+            for (int x = 0; x < grid.width; x++) {
+                Cell cell = grid.getCell(x, y);
+                if (cell.protein != null) {
+                    proteinPositions.put(cell.protein, cell.pos);
                 }
             }
-
-            if (!proteinFound) {
-                return "GROW 1 17 2 BASIC";
-            }
-        } else {
-            return "GROW 1 17 2 BASIC";
         }
-
-        return "GROW 1 17 2 BASIC";
     }
+    void displayProteinsOnGrid() {
+        // Parcourt toutes les cellules du grid
+        for (int y = 0; y < grid.height; y++) {
+            for (int x = 0; x < grid.width; x++) {
+                Cell cell = grid.getCell(x, y);
+                if (cell.protein != null) {
+                    System.err.println("Protein " + cell.protein + " is at position " + x + ", " + y);
+                }
+            }
+        }
+    }
+    void displayOrgansOnGrid() {
+        // Parcourt toutes les cellules du grid
+        for (int y = 0; y < grid.height; y++) {
+            for (int x = 0; x < grid.width; x++) {
+                Cell cell = grid.getCell(x, y);
+                if (cell.organ != null) {
+                    Organ organ = cell.organ;
+                    System.err.println("Organ ID: " + organ.id
+                            + ", Owner: " + organ.owner
+                            + ", Organ Parent ID: " + organ.parentId
+                            + ", Organ Root ID: " + organ.rootId
+                            + ", Type: " + organ.organType
+                            + ", Direction: " + organ.dir
+                            + ", Position: (" + x + ", " + y + ")");
+                }
+            }
+        }
+    }
+
 }
 
 /**
@@ -202,7 +203,6 @@ class Player {
         int height = in.nextInt(); // rows in the game grid
 
         Game game = new Game(width, height);
-        Action action = new Action();
 
         // game loop
         while (true) {
@@ -256,17 +256,27 @@ class Player {
             game.oppProteins.put(B, oppB);
             game.oppProteins.put(C, oppC);
             game.oppProteins.put(D, oppD);
-            int requiredActionsCount = in.nextInt();
+
+            game.updateProteinPositions();
+
+            int requiredActionsCount = in.nextInt(); // your number of organisms, output an action for each one in any order
             for (int i = 0; i < requiredActionsCount; i++) {
-                game.printGrid();
-
-
-                String actionToPerform = action.performAction(game);
-                System.out.println(actionToPerform);
+                // Write an action using System.out.println()
+                // To debug: System.err.println("Debug messages...");
+                // game.grid.displayGrid();
+                game.displayOrgansOnGrid();
+                game.displayProteinsOnGrid();
+                System.out.println("WAIT");
             }
         }
     }
 }
 enum Direction {
     N, E, S, W;
+}
+enum OrganType {
+    ROOT, HARVESTER, BASIC;
+}
+enum ActionType {
+    GROW, WAIT;
 }
