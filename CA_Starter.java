@@ -322,7 +322,7 @@ class Game {
         }
     }
     void reachNextProt(int iteration) {
-        // faire un mouvement depuis le root Organ vers une position infinie entre " "
+        // faire 3 tours de wait "gain 3 A"
         String direction = "N";
 
         String actionType = "WAIT";
@@ -414,13 +414,6 @@ class Player {
             }
             game.updateProteinPositions();
             game.reachProt();
-            //            List<String> actions = new ArrayList<>();
-            //            for (Organ organ : game.myOrgans) {
-            //                game.compareOrganToProteinsOnGrid(organ, actions);
-            //            }
-            //            for (String action : actions) {
-            //                System.out.println(action);
-            //            }
         }
     }
 }
