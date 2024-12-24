@@ -258,23 +258,24 @@ class Game {
             Organ lastOrgan = myOrgans.get(myOrgans.size() - 1);
 
             Pos closestProteinPos = findClosestProteinInArea(lastOrgan);
-//            grid.width = 16;
-//            grid.height = 3;
+            String direction="";
+            String actionType;
+
+           grid.width = 16;
+           grid.height = 3;
 
             if (closestProteinPos != null) {
                 int deltaX = closestProteinPos.x - lastOrgan.pos.x;
                 int deltaY = closestProteinPos.y - lastOrgan.pos.y;
 
-                String direction;
                 if (deltaY > 0) {
-                    direction = "S"; // Vers le bas
+                    direction = "S"; // Sud
                 } else if (deltaY < 0) {
-                    direction = "N"; // Vers le haut
-                } else {
-                    direction = "E"; // Même ligne en Y
+                    direction = "N"; // Nord
+                } else if (deltaX > 0) {
+                    direction = "E"; // Est
                 }
 
-                String actionType;
                 // affichage du delta Y :
                 System.err.println("delta Y : " + deltaY);
                 // affichage du delta X :
@@ -287,72 +288,17 @@ class Game {
                 } else {
                     actionType = "GROW " + lastOrgan.id + " " + closestProteinPos.x + " " + closestProteinPos.y + " " + "BASIC " + direction;
                 }
-                System.out.println(actionType);
+            } else {
+                // Aucune protéine trouvée : mouvement par défaut
+                direction = "N"; // Choisir une direction par défaut
+                actionType = "GROW " + lastOrgan.id + " " + grid.width + " " + grid.height + " " + "BASIC " + direction;
             }
-            return; // Utilisez return pour terminer l'exécution de la méthode
+            System.out.println(actionType);
         } else {
             System.err.println("Liste des organes vide !");
         }
     }
 }
-// Comparatif des positions ente ma proteine cible et mon organe
-//    void compareOrganToProteinsOnGrid(Organ organ, List<String> actions) {
-//
-//        if (organ != null && organ.pos != null) {
-//
-//            for (int y = 1; y <= 3; y++) {
-//                for (int x = 1; x <= 16; x++) {
-//                    Cell cell = grid.getCell(x, y);
-//                    if (cell != null && cell.protein != null) {
-//
-//                        int deltaX = Math.abs(organ.pos.x - x);
-//                        int deltaY = organ.pos.y - y;;
-//
-//
-//                        System.err.println("DeltaX = " + deltaX + " " + "DeltaY = " + deltaY + " " + "from Organ ID = " + organ.id);
-//
-//                        String direction ="";
-//
-//                        int actionId = organ.children.isEmpty() ? organ.id : organ.children.get(0).id;
-//
-//                        if (deltaY == 0) {
-//                            direction = "E";
-//                        } else if (deltaY >= 1) {
-//                            direction = "N";
-//                        } else if (deltaY <= 1) {
-//                            direction = "S";
-//                        }
-//
-//                        String actionType ="";
-//
-//                        if (organ.organType.equals("ROOT")) {
-//                            actionType = "GROW " + organ.rootId + " 16 2 BASIC " + direction;
-//                            System.err.println("Action (ROOT) : " + actionType);
-//                        }
-//                        else if (organ.organType.equals("BASIC")) {
-//                            if (deltaX == 2) {
-//                                actionType = "GROW " + actionId + " " +  "16 2 HARVESTER " + direction;
-//                            } else {
-//                                actionType = "GROW " + actionId + " "  + "16 2 BASIC " + direction;
-//                            }
-//                        }
-//
-//                        actions.add(actionType);
-//                    }
-//                }
-//            }
-//        }
-//    }
-//    private void calculateDelta(Pos proteinPos, Organ organ) {
-//        if (proteinPos != null && organ.pos != null) {
-//            int deltaX = Math.abs(proteinPos.x - organ.pos.x);
-//            int deltaY = Math.abs(proteinPos.y - organ.pos.y);
-//
-//            System.err.println(String.format("Delta between Protein and Organ with ID %d: DeltaX = %d, DeltaY = %d",
-//                organ.id, deltaX, deltaY));
-//        }
-//    }
-//}
 
 /**
  * Grow and multiply your organisms to end up larger than your opponent.
