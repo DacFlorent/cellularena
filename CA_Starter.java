@@ -3,6 +3,7 @@ import java.io.*;
 import java.math.*;
 
 class Pos {
+
     final int x;
     final int y;
 
@@ -10,9 +11,11 @@ class Pos {
         this.x = x;
         this.y = y;
     }
+
 }
 
 class Organ {
+
     int id;
     int owner;
     int parentId;
@@ -20,6 +23,7 @@ class Organ {
     Pos pos;
     String organType;
     String dir;
+    List<Organ> children;
 
     Organ(int id, int owner, int parentId, int rootId, Pos pos, String organType, String dir) {
         this.id = id;
@@ -29,10 +33,12 @@ class Organ {
         this.pos = pos;
         this.organType = organType;
         this.dir = dir;
+        this.children = new ArrayList<>();
     }
 }
 
 class Cell {
+
     Pos pos;
     boolean isWall;
     String protein;
@@ -51,6 +57,7 @@ class Cell {
 }
 
 class Grid {
+
     Cell[] cells;
     int width, height;
 
@@ -82,7 +89,10 @@ class Grid {
 
     void setCell(Pos pos, Cell cell) {
         cells[pos.x + width * pos.y] = cell;
+
     }
+
+    // Affichage de la grille complète  ( toutes les entités )
     void displayGrid() {
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
@@ -117,6 +127,7 @@ class Grid {
 }
 
 class Game {
+
     Grid grid;
     Map<String, Integer> myProteins;
     Map<String, Integer> oppProteins;
@@ -142,6 +153,8 @@ class Game {
         organMap.clear();
         proteinPositions.clear();
     }
+
+    // MaJ de la position des proteines
     void updateProteinPositions() {
         proteinPositions.clear();
         for (int y = 0; y < grid.height; y++) {
@@ -153,6 +166,8 @@ class Game {
             }
         }
     }
+
+    // Affichage des proteines sur la grille
     void displayProteinsOnGrid() {
         for (int y = 0; y < grid.height; y++) {
             for (int x = 0; x < grid.width; x++) {
@@ -163,6 +178,8 @@ class Game {
             }
         }
     }
+
+    // Affichage des organes sur la grille
     void displayOrgansOnGrid() {
         for (int y = 0; y < grid.height; y++) {
             for (int x = 0; x < grid.width; x++) {
@@ -181,12 +198,167 @@ class Game {
         }
     }
 
+    // affichage des proteines uniquement sur la zone de jeu de mon Organe (area restreinte)
+    void displayProteinsInSpecificArea() {
+        List<Pos> proteinsInArea = new ArrayList<>();
+        // Parcourt les lignes entre Y = 1 et Y = 3 inclusivement
+        for (int y = 1; y <= 3; y++) {
+            // Parcourt les colonnes entre X = 1 et X = 16 inclusivement
+            for (int x = 1; x <= 16; x++) {
+                Cell cell = grid.getCell(x, y);
+                if (cell != null && cell.protein != null) {
+                    proteinsInArea.add(cell.pos);
+                    System.err.println("(Specific AREA) Protein " + cell.protein + " is at position " + x + ", " + y);
+                }
+            }
+        }
+    }
+
+    Pos findClosestProteinInArea(Organ organ) {
+        List<Pos> proteinsInArea = getProteinsInSpecificArea();
+        Pos closestProteinPos = null;
+        int minDistance = Integer.MAX_VALUE;
+
+        for (Pos proteinPos : proteinsInArea) {
+            // Calculer la distance de Manhattan entre l'organe et la protéine
+            int deltaX = Math.abs(proteinPos.x - organ.pos.x);
+            int deltaY = Math.abs(proteinPos.y - organ.pos.y);
+            int distance = deltaX + deltaY;  // Distance de Manhattan
+
+            // Si la protéine est plus proche, mettre à jour la protéine la plus proche
+            if (distance < minDistance) {
+                minDistance = distance;
+                closestProteinPos = proteinPos;
+            }
+        }
+
+        return closestProteinPos;
+    }
+
+    List<Pos> getProteinsInSpecificArea() {
+        List<Pos> proteinsInArea = new ArrayList<>();
+
+        // Parcourt les lignes entre Y = 1 et Y = 3 inclusivement
+        for (int y = 1; y <= 3; y++) {
+            // Parcourt les colonnes entre X = 1 et X = 16 inclusivement
+            for (int x = 1; x <= 16; x++) {
+                Cell cell = grid.getCell(x, y);
+                if (cell != null && cell.protein != null) {
+                    proteinsInArea.add(cell.pos); // Ajout de la position de la protéine
+                }
+            }
+        }
+        return proteinsInArea;
+    }
+
+    // Rejoindre la position de la proteine la plus proche
+    void reachProt() {
+        if (!myOrgans.isEmpty()) {
+            // Récupérez le dernier organe de la liste
+            Organ lastOrgan = myOrgans.get(myOrgans.size() - 1);
+
+            Pos closestProteinPos = findClosestProteinInArea(lastOrgan);
+//            grid.width = 16;
+//            grid.height = 3;
+
+            if (closestProteinPos != null) {
+                int deltaX = closestProteinPos.x - lastOrgan.pos.x;
+                int deltaY = closestProteinPos.y - lastOrgan.pos.y;
+
+                String direction;
+                if (deltaY > 0) {
+                    direction = "S"; // Vers le bas
+                } else if (deltaY < 0) {
+                    direction = "N"; // Vers le haut
+                } else {
+                    direction = "E"; // Même ligne en Y
+                }
+
+                String actionType;
+                // affichage du delta Y :
+                System.err.println("delta Y : " + deltaY);
+                // affichage du delta X :
+                System.err.println("delta X : " + deltaX);
+                // ID last Organ
+                System.err.println("Dernier organe ID: " + lastOrgan.id);
+                // si delta X = 2, HARVESTER, sinon BASIC
+                if (deltaX == 2) {
+                    actionType = "GROW " + lastOrgan.id + " " + closestProteinPos.x + " " + closestProteinPos.y + " " + "HARVESTER " + direction;
+                } else {
+                    actionType = "GROW " + lastOrgan.id + " " + closestProteinPos.x + " " + closestProteinPos.y + " " + "BASIC " + direction;
+                }
+                System.out.println(actionType);
+            }
+            return; // Utilisez return pour terminer l'exécution de la méthode
+        } else {
+            System.err.println("Liste des organes vide !");
+        }
+    }
 }
+// Comparatif des positions ente ma proteine cible et mon organe
+//    void compareOrganToProteinsOnGrid(Organ organ, List<String> actions) {
+//
+//        if (organ != null && organ.pos != null) {
+//
+//            for (int y = 1; y <= 3; y++) {
+//                for (int x = 1; x <= 16; x++) {
+//                    Cell cell = grid.getCell(x, y);
+//                    if (cell != null && cell.protein != null) {
+//
+//                        int deltaX = Math.abs(organ.pos.x - x);
+//                        int deltaY = organ.pos.y - y;;
+//
+//
+//                        System.err.println("DeltaX = " + deltaX + " " + "DeltaY = " + deltaY + " " + "from Organ ID = " + organ.id);
+//
+//                        String direction ="";
+//
+//                        int actionId = organ.children.isEmpty() ? organ.id : organ.children.get(0).id;
+//
+//                        if (deltaY == 0) {
+//                            direction = "E";
+//                        } else if (deltaY >= 1) {
+//                            direction = "N";
+//                        } else if (deltaY <= 1) {
+//                            direction = "S";
+//                        }
+//
+//                        String actionType ="";
+//
+//                        if (organ.organType.equals("ROOT")) {
+//                            actionType = "GROW " + organ.rootId + " 16 2 BASIC " + direction;
+//                            System.err.println("Action (ROOT) : " + actionType);
+//                        }
+//                        else if (organ.organType.equals("BASIC")) {
+//                            if (deltaX == 2) {
+//                                actionType = "GROW " + actionId + " " +  "16 2 HARVESTER " + direction;
+//                            } else {
+//                                actionType = "GROW " + actionId + " "  + "16 2 BASIC " + direction;
+//                            }
+//                        }
+//
+//                        actions.add(actionType);
+//                    }
+//                }
+//            }
+//        }
+//    }
+//    private void calculateDelta(Pos proteinPos, Organ organ) {
+//        if (proteinPos != null && organ.pos != null) {
+//            int deltaX = Math.abs(proteinPos.x - organ.pos.x);
+//            int deltaY = Math.abs(proteinPos.y - organ.pos.y);
+//
+//            System.err.println(String.format("Delta between Protein and Organ with ID %d: DeltaX = %d, DeltaY = %d",
+//                organ.id, deltaX, deltaY));
+//        }
+//    }
+//}
 
 /**
  * Grow and multiply your organisms to end up larger than your opponent.
  **/
 class Player {
+
     // Protein types
     static final String A = "A";
     static final String B = "B";
@@ -255,8 +427,6 @@ class Player {
             game.oppProteins.put(C, oppC);
             game.oppProteins.put(D, oppD);
 
-            game.updateProteinPositions();
-
             int requiredActionsCount = in.nextInt(); // your number of organisms, output an action for each one in any order
             for (int i = 0; i < requiredActionsCount; i++) {
                 // Write an action using System.out.println()
@@ -264,17 +434,29 @@ class Player {
                 // game.grid.displayGrid();
                 game.displayOrgansOnGrid();
                 game.displayProteinsOnGrid();
-                System.out.println("WAIT");
+                game.displayProteinsInSpecificArea();
             }
+            game.updateProteinPositions();
+            game.reachProt();
+            //            List<String> actions = new ArrayList<>();
+            //            for (Organ organ : game.myOrgans) {
+            //                game.compareOrganToProteinsOnGrid(organ, actions);
+            //            }
+            //            for (String action : actions) {
+            //                System.out.println(action);
+            //            }
         }
     }
 }
+
 enum Direction {
     N, E, S, W;
 }
+
 enum OrganType {
     ROOT, HARVESTER, BASIC;
 }
+
 enum ActionType {
     GROW, WAIT;
 }
