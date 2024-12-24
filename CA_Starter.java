@@ -262,7 +262,7 @@ class Game {
             String actionType;
 
            grid.width = 16;
-           grid.height = 3;
+           grid.height = 7;
 
             if (closestProteinPos != null) {
                 int deltaX = closestProteinPos.x - lastOrgan.pos.x;
@@ -288,7 +288,13 @@ class Game {
                     // Gestion des diagonales
                     if (deltaX == 1) {
                         actionType = "GROW " + lastOrgan.id + " " + closestProteinPos.x + " " + closestProteinPos.y + " " + "HARVESTER " + direction;
-                        // Ici, vous pouvez choisir d'effectuer une action spécifique pour une petite diagonale
+                        System.out.println(actionType);
+
+                        int numActions = 3;
+                        // Appeler la méthode de mouvement HARVESTER et sortir
+                        for (int i = 0; i < numActions; i++) {
+                            reachNextProt(i); // Passer l'itération pour personnaliser l'action
+                        }
                     } else {
                         // Si c'est une diagonale avec une plus grande distance, on peut attendre ou gérer autrement
                         actionType = "GROW " + lastOrgan.id + " " + closestProteinPos.x + " " + closestProteinPos.y + " " + "BASIC " + direction;
@@ -296,6 +302,11 @@ class Game {
                 } else {
                     if (deltaX == 2) {
                         actionType = "GROW " + lastOrgan.id + " " + closestProteinPos.x + " " + closestProteinPos.y + " " + "HARVESTER " + direction;
+                        System.out.println(actionType);
+                        int numActions = 3;
+                        for (int i = 0; i < numActions; i++) {
+                            reachNextProt(i); // Passer l'itération pour personnaliser l'action
+                        }
                     } else {
                         actionType = "GROW " + lastOrgan.id + " " + closestProteinPos.x + " " + closestProteinPos.y + " " + "BASIC " + direction;
                     }
@@ -309,6 +320,13 @@ class Game {
         } else {
             System.err.println("Liste des organes vide !");
         }
+    }
+    void reachNextProt(int iteration) {
+        // faire un mouvement depuis le root Organ vers une position infinie entre " "
+        String direction = "N";
+
+        String actionType = "WAIT";
+        System.out.println(actionType);
     }
 }
 
