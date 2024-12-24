@@ -283,10 +283,22 @@ class Game {
                 // ID last Organ
                 System.err.println("Dernier organe ID: " + lastOrgan.id);
                 // si delta X = 2, HARVESTER, sinon BASIC
-                if (deltaX == 2) {
-                    actionType = "GROW " + lastOrgan.id + " " + closestProteinPos.x + " " + closestProteinPos.y + " " + "HARVESTER " + direction;
+
+                if (deltaX != 0 && deltaY != 0) {
+                    // Gestion des diagonales
+                    if (deltaX == 1) {
+                        actionType = "GROW " + lastOrgan.id + " " + closestProteinPos.x + " " + closestProteinPos.y + " " + "HARVESTER " + direction;
+                        // Ici, vous pouvez choisir d'effectuer une action spécifique pour une petite diagonale
+                    } else {
+                        // Si c'est une diagonale avec une plus grande distance, on peut attendre ou gérer autrement
+                        actionType = "GROW " + lastOrgan.id + " " + closestProteinPos.x + " " + closestProteinPos.y + " " + "BASIC " + direction;
+                    }
                 } else {
-                    actionType = "GROW " + lastOrgan.id + " " + closestProteinPos.x + " " + closestProteinPos.y + " " + "BASIC " + direction;
+                    if (deltaX == 2) {
+                        actionType = "GROW " + lastOrgan.id + " " + closestProteinPos.x + " " + closestProteinPos.y + " " + "HARVESTER " + direction;
+                    } else {
+                        actionType = "GROW " + lastOrgan.id + " " + closestProteinPos.x + " " + closestProteinPos.y + " " + "BASIC " + direction;
+                    }
                 }
             } else {
                 // Aucune protéine trouvée : mouvement par défaut
