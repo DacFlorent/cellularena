@@ -198,6 +198,7 @@ class Game {
         }
     }
 
+
     // affichage des proteines uniquement sur la zone de jeu de mon Organe (area restreinte)
     void displayProteinsInSpecificArea() {
         List<Pos> proteinsInArea = new ArrayList<>();
@@ -234,6 +235,43 @@ class Game {
 
         return closestProteinPos;
     }
+    // Recherche autour de mon organe
+    List<CellType> checkCellAround(Pos pos, int radius) {
+        List<CellType> cellTypes = new ArrayList<>();
+        // Parcourt les cellules autour de la position dans le rayon donné
+        for (int x = pos.x - radius; x <= pos.x + radius; x++) {
+            for (int y = pos.y - radius; y <= pos.y + radius; y++) {
+                // Manhattan pour extraire les diagonales
+                if (Math.abs(pos.x - x) + Math.abs(pos.y - y) == radius) {
+                    // Récupérer la cellule correspondante
+                    Cell cell = grid.getCell(x, y);
+
+                    // Déterminer le type de la cellule et l'ajouter à la liste
+//                if (cell != null) {
+//                    if (cell.protein != null) {
+//                        cellTypes.add(CellType.PROTEIN);
+//                    } else if (cell.organ != null) {
+//                        cellTypes.add(CellType.ORGAN);
+//                    } else {
+//                        cellTypes.add(CellType.EMPTY);
+//                    }
+//
+//                    // Affichage pour déboguer
+//                    System.err.println("Cellule à (" + x + ", " + y + ") : " + (cell.protein != null ? "PROTEIN" : (cell.organ != null ? "ORGAN" : "EMPTY")));
+//                }
+                    if (cell != null && cell.organ != null && cell.organ.owner == 0) {
+                        cellTypes.add(CellType.ORGAN);
+
+                        // Affichage uniquement si la cellule contient un organe avec ownerId = 0
+                        System.err.println("Cellule à (" + x + ", " + y + ") : ORGAN avec ownerId = 0");
+                    }
+                }
+            }
+        }
+
+        // Retourner la liste des types de cellules trouvés
+        return cellTypes;
+    }
 
     List<Pos> getProteinsInSpecificArea() {
         List<Pos> proteinsInArea = new ArrayList<>();
@@ -253,6 +291,7 @@ class Game {
 
     // Rejoindre la position de la proteine la plus proche
     void reachProt() {
+
         if (!myOrgans.isEmpty()) {
             // Récupérez le dernier organe de la liste
             Organ lastOrgan = myOrgans.get(myOrgans.size() - 1);
@@ -312,17 +351,26 @@ class Game {
                     }
                 }
             } else {
-                // Aucune protéine trouvée : mouvement par défaut
-                direction = "N"; // Choisir une direction par défaut
-                actionType = "GROW " + lastOrgan.id + " " + grid.width + " " + grid.height + " " + "BASIC " + direction;
+                // Aucune protéine trouvée : TENTACLE ATTAQUE APRES HARVESTER
+                List<CellType> cellTypes = checkCellAround(lastOrgan.pos, 2);  // Rayon de 2
+
+                // Affichage de ce qui a été trouvé
+                System.err.println("Cellules trouvées autour de la position : " + cellTypes);
+
+                if (cellTypes.contains(CellType.ORGAN)) {
+                    actionType = "GROW " + lastOrgan.id + " 16 5 TENTACLE " + direction;
+                    System.out.println(actionType);
+                } else {
+                    actionType = "GROW 1 16 3 BASIC";
+                    System.out.println(actionType);
+                }
             }
-            System.out.println(actionType);
         } else {
             System.err.println("Liste des organes vide !");
         }
     }
     void reachNextProt(int iteration) {
-        // faire 3 tours de wait "gain 3 A"
+        // faire un mouvement depuis le root Organ vers une position infinie entre " "
         String direction = "N";
 
         String actionType = "WAIT";
@@ -428,4 +476,7 @@ enum OrganType {
 
 enum ActionType {
     GROW, WAIT;
+}
+enum CellType {
+    WALL, EMPTY, PROTEIN, ORGAN
 }
