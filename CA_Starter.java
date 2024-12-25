@@ -360,6 +360,11 @@ class Game {
                 if (cellTypes.contains(CellType.ORGAN)) {
                     actionType = "GROW " + lastOrgan.id + " 16 5 TENTACLE " + direction;
                     System.out.println(actionType);
+                    int numActions = 3; // Nombre d'actions à exécuter
+                    for (int i = 0; i < numActions; i++) {
+                        afterTentacle(i); // Passer l'itération pour personnaliser l'action
+                    }
+
                 } else {
                     actionType = "GROW 1 16 3 BASIC";
                     System.out.println(actionType);
@@ -374,6 +379,13 @@ class Game {
         String direction = "N";
 
         String actionType = "WAIT";
+        System.out.println(actionType);
+    }
+    void afterTentacle(int iteration) {
+        // continué la croissance apres TENTACLE
+        String direction = "S";
+
+        String actionType = "GROW 1 11 5 BASIC " + direction;
         System.out.println(actionType);
     }
 }
