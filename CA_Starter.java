@@ -295,6 +295,7 @@ class Game {
         if (!myOrgans.isEmpty()) {
             // Récupérez le dernier organe de la liste
             Organ lastOrgan = myOrgans.get(myOrgans.size() - 1);
+            Organ organ = myOrgans.get(0);
 
             Pos closestProteinPos = findClosestProteinInArea(lastOrgan);
             String direction="";
@@ -305,7 +306,7 @@ class Game {
 
             if (closestProteinPos != null) {
                 int deltaX = closestProteinPos.x - lastOrgan.pos.x;
-                int deltaY = closestProteinPos.y - lastOrgan.pos.y;
+                int deltaY =  closestProteinPos.y - lastOrgan.pos.y;
 
                 if (deltaY > 0) {
                     direction = "S"; // Sud
@@ -330,10 +331,12 @@ class Game {
                         System.out.println(actionType);
 
                         int numActions = 3;
-                        // Appeler la méthode de mouvement HARVESTER et sortir
+                        // Appeler la méthode de mouvement HARVESTER et sortir pendant 3 tours
                         for (int i = 0; i < numActions; i++) {
                             reachNextProt(i); // Passer l'itération pour personnaliser l'action
                         }
+                    } else if (deltaX > 2 ){
+                        putSporer(lastOrgan, organ, deltaX, deltaY, closestProteinPos, direction, lastOrgan.pos);
                     } else {
                         // Si c'est une diagonale avec une plus grande distance, on peut attendre ou gérer autrement
                         actionType = "GROW " + lastOrgan.id + " " + closestProteinPos.x + " " + closestProteinPos.y + " " + "BASIC " + direction;
@@ -342,12 +345,13 @@ class Game {
                     if (deltaX == 2) {
                         actionType = "GROW " + lastOrgan.id + " " + closestProteinPos.x + " " + closestProteinPos.y + " " + "HARVESTER " + direction;
                         System.out.println(actionType);
+                        // sortir 3 tours
                         int numActions = 3;
                         for (int i = 0; i < numActions; i++) {
                             reachNextProt(i); // Passer l'itération pour personnaliser l'action
                         }
                     } else {
-                        actionType = "GROW " + lastOrgan.id + " " + closestProteinPos.x + " " + closestProteinPos.y + " " + "BASIC " + direction;
+                        actionType = "WAIT";
                     }
                 }
             } else {
@@ -387,6 +391,30 @@ class Game {
 
         String actionType = "GROW 1 11 5 BASIC " + direction;
         System.out.println(actionType);
+    }
+    void putSporer(Organ lastOrgan, Organ organ, int deltaX, int deltaY, Pos closestProteinPos, String direction, Pos pos) {
+        direction ="";
+        int sporeX = pos.x;
+        int sporeY = pos.y;
+
+        if (deltaX > 1) {
+            sporeX = 1;
+            sporeY = 1;
+            direction ="E";
+        } else if (deltaX < 0) {
+            sporeX = 1;
+            sporeY = 3;
+            direction ="E";
+        } else if (deltaX == 0) {
+            sporeX = 2;
+            sporeY = 2;
+            direction = "E";
+        }
+        String actionType = "GROW " + organ.id + " " + sporeX + " " + sporeY + " " + "SPORER " + direction;
+        System.out.println(actionType);
+
+        String actionSpore = "SPORE 3 "+ closestProteinPos.x + " " + closestProteinPos.y + " ";
+        System.out.println(actionSpore);
     }
 }
 
@@ -487,7 +515,7 @@ enum OrganType {
 }
 
 enum ActionType {
-    GROW, WAIT;
+    GROW, WAIT, TENTACLE, SPORER;
 }
 enum CellType {
     WALL, EMPTY, PROTEIN, ORGAN
