@@ -336,7 +336,7 @@ class Game {
                             reachNextProt(i); // Passer l'itération pour personnaliser l'action
                         }
                     } else if (deltaX > 2 ){
-                        putSporer(lastOrgan, organ, deltaX, deltaY, closestProteinPos, direction, lastOrgan.pos);
+                        putSporer(organ, deltaX, deltaY, closestProteinPos, direction, organ.pos);
                     } else {
                         // Si c'est une diagonale avec une plus grande distance, on peut attendre ou gérer autrement
                         actionType = "GROW " + lastOrgan.id + " " + closestProteinPos.x + " " + closestProteinPos.y + " " + "BASIC " + direction;
@@ -351,7 +351,9 @@ class Game {
                             reachNextProt(i); // Passer l'itération pour personnaliser l'action
                         }
                     } else {
-                        actionType = "WAIT";
+                        if (deltaX > 2 ){
+                            putSporer(organ, deltaX, deltaY, closestProteinPos, direction, organ.pos);
+                        }
                     }
                 }
             } else {
@@ -392,23 +394,22 @@ class Game {
         String actionType = "GROW 1 11 5 BASIC " + direction;
         System.out.println(actionType);
     }
-    void putSporer(Organ lastOrgan, Organ organ, int deltaX, int deltaY, Pos closestProteinPos, String direction, Pos pos) {
-        direction ="";
+    void putSporer(Organ organ, int deltaX, int deltaY, Pos closestProteinPos, String direction, Pos pos) {
+        direction ="E";
         int sporeX = pos.x;
+        System.err.println(sporeX);
         int sporeY = pos.y;
+        System.err.println(sporeY);
 
         if (deltaY < 0) {
             sporeX = 1;
             sporeY = 1;
-            direction ="E";
         } else if (deltaY > 0) {
             sporeX = 1;
             sporeY = 3;
-            direction ="E";
-        } else if (deltaY == 0) {
+        } else {
             sporeX = 2;
             sporeY = 2;
-            direction = "E";
         }
         String actionType = "GROW " + organ.id + " " + sporeX + " " + sporeY + " " + "SPORER " + direction;
         System.out.println(actionType);
