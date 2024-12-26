@@ -121,9 +121,9 @@ class Grid {
 				// CHECK ORGAN
 				if (cell.organ != null) {
 					cellInfo.append("Organ ID: ").append(cell.organ.id)
-						.append(", Type: ").append(cell.organ.organType)
-						.append(", Owner: ").append(cell.organ.owner)
-						.append(", Direction: ").append(cell.organ.dir);
+							.append(", Type: ").append(cell.organ.organType)
+							.append(", Owner: ").append(cell.organ.owner)
+							.append(", Direction: ").append(cell.organ.dir);
 				}
 
 				System.err.println(cellInfo.toString());
@@ -280,6 +280,7 @@ class Game {
 		return cellTypes;
 	}
 
+
 	List<Pos> getProteinsInSpecificArea() {
 		List<Pos> proteinsInArea = new ArrayList<>();
 
@@ -297,15 +298,14 @@ class Game {
 	}
 
 	// Rejoindre la position de la proteine la plus proche
-	void reachProt(int myA) {
-		this.myA = myA;
+	private boolean putSporerCalled = false;
 
-		if (myA == 0) {
-			System.out.println("WAIT"); // Si myA est 0, on fait simplement une attente
-			return; // Sortir de la méthode pour ne pas exécuter le reste du code
-		}
+	private boolean alreadyCalled() {
+		return putSporerCalled;
+	}
 
-		System.err.println("Stock Prot A : " + myA);
+	void reachProt() {
+
 		if (!myOrgans.isEmpty()) {
 			// Récupérez le dernier organe de la liste
 			Organ lastOrgan = myOrgans.get(myOrgans.size() - 1);
@@ -346,88 +346,78 @@ class Game {
 						actionType = "GROW " + lastOrgan.id + " " + closestProteinPos.x + " " + closestProteinPos.y + " " + "HARVESTER " + direction;
 						System.out.println(actionType);
 
-						int numActions = 3;
-						// Appeler la méthode de mouvement HARVESTER et sortir pendant 3 tours
-						for (int i = 0; i < numActions; i++) {
-							reachNextProt(i); // Passer l'itération pour personnaliser l'action
-						}
+//						int numActions = 3;
+//						// Appeler la méthode de mouvement HARVESTER et sortir pendant 3 tours
+//						for (int i = 0; i < numActions; i++) {
+//							reachNextProt(i); // Passer l'itération pour personnaliser l'action
+//						}
 					} else if (deltaX > 2) {
-						putSporer(organ, lastOrgan, deltaY, closestProteinPos, direction, organ.pos);
+						if (!alreadyCalled()) {
+							putSporer(organ, lastOrgan, deltaY, closestProteinPos, direction, organ.pos);
+						}
 
-					} else {
-						// Si c'est une diagonale avec une plus grande distance, on peut attendre ou gérer autrement
-						actionType = "GROW " + lastOrgan.id + " " + closestProteinPos.x + " " + closestProteinPos.y + " " + "BASIC " + direction;
 					}
 				} else {
 					if (deltaX == 2) {
 						actionType = "GROW " + lastOrgan.id + " " + closestProteinPos.x + " " + closestProteinPos.y + " " + "HARVESTER " + direction;
 						System.out.println(actionType);
 						// sortir 3 tours
-						int numActions = 3;
-						for (int i = 0; i < numActions; i++) {
-							reachNextProt(i); // Passer l'itération pour personnaliser l'action
-						}
+//						int numActions = 3;
+//						for (int i = 0; i < numActions; i++) {
+//							reachNextProt(i); // Passer l'itération pour personnaliser l'action
+//						}
 					} else {
 						if (deltaX > 2) {
-							putSporer(organ, lastOrgan, deltaY, closestProteinPos, direction, organ.pos);
+							if (!alreadyCalled()) {
+								putSporer(organ, lastOrgan, deltaY, closestProteinPos, direction, organ.pos);
+							}
 						}
 					}
 				}
 			} else {
 				// Aucune protéine trouvée : TENTACLE ATTAQUE APRES HARVESTER
 				List<CellType> cellTypes = checkCellAround(lastOrgan.pos, 2);  // Rayon de 2
-
 				// Affichage de ce qui a été trouvé
 				System.err.println("Cellules trouvées autour de la position : " + cellTypes);
 
 				if (cellTypes.contains(CellType.ORGAN)) {
 					actionType = "GROW " + lastOrgan.id + " 16 5 TENTACLE " + direction;
 					System.out.println(actionType);
-					int numActions = 3; // Nombre d'actions à exécuter
-					for (int i = 0; i < numActions; i++) {
-						afterTentacle(i); // Passer l'itération pour personnaliser l'action
-					}
-
+//					int numActions = 3; // Nombre d'actions à exécuter
+//					for (int i = 0; i < numActions; i++) {
+//						afterTentacle(i); // Passer l'itération pour personnaliser l'action
+//					}
 				} else {
-					String actionType1 = "GROW 1 2 2 BASIC";
-					String actionType2 = "GROW 5 9 3 BASIC";
+//					String[] actions = {
+//							"GROW 7 9 3 BASIC", "GROW 8 3 3 BASIC",
+//							"GROW 11 9 3 BASIC", "GROW 12 9 3 BASIC",
+//							"GROW 18 9 3 BASIC", "GROW 16 9 3 BASIC",
+//							"GROW 20 16 3 HARVESTER", "WAIT"
+//					};
+//
+//					for (int i = 0; i < actions.length; i += 2) {
+//						if (i + 1 < actions.length) {  // Vérifier si une deuxième action existe
+//							// Afficher les deux actions successivement
+//							System.out.println(actions[i]);
+//							System.out.println(actions[i + 1]);
+//						} else {
+//							// Afficher l'action restante si elle existe
+//							System.out.println(actions[i]);
+//						}
+//					}
 
-					String actionType3 = "GROW 8 9 3 BASIC";
-					String actionType4 = "GROW 7 3 3 BASIC";
-
-					String actionType5 = "GROW 11 9 3 BASIC";
-					String actionType6 = "GROW 12 9 3 BASIC";
-
-					String actionType7 = "GROW 15 9 3 BASIC";
-					String actionType8 = "GROW 17 9 3 BASIC";
-
-					String actionType9 = "WAIT";
-					String actionType10 = "WAIT";
-
-					String actionType11 = "GROW 21 16 3 HARVESTER";
-					String actionType12 = "WAIT";
-
-					System.out.println(actionType1);
-					System.out.println(actionType2);
-					System.out.println(actionType3);
-					System.out.println(actionType4);
-					System.out.println(actionType5);
-					System.out.println(actionType6);
-					System.out.println(actionType7);
-					System.out.println(actionType8);
-
-					System.err.print("ici : actuellement");
-
-
-					System.out.println(actionType9);
-					System.out.println(actionType10);
-					System.out.println(actionType11);
-					System.out.println(actionType12);
+					int numActions = 0;
+					for (int i = 0; ; i++) {
+						noProtA(i);
+						if (i >= 100) {  // Après 10 itérations, sortir de la boucle
+							break;
+						}
+					}
 				}
 			}
 		} else {
-			String actionType = "WAIT";
-			System.out.println(actionType);
+			String wait = "WAIT";
+			System.out.println(wait);
 		}
 	}
 
@@ -436,6 +426,11 @@ class Game {
 		String direction = "N";
 
 		String actionType = "GROW 1 11 5 BASIC";
+		System.out.println(actionType);
+	}
+
+	void noProtA(int iteration) {
+		String actionType = "WAIT";
 		System.out.println(actionType);
 	}
 
@@ -464,40 +459,40 @@ class Game {
 			sporeX = 2;
 			sporeY = 2;
 		}
-		String actionType = "GROW " + organ.id + " " + sporeX + " " + sporeY + " " + "SPORER " + direction;
+		String actionType = "GROW " + organ.id + " " + sporeX + " " + sporeY + " SPORER " + direction;
 		System.out.println(actionType);
 
-		String actionSpore = "SPORE 3 " + closestProteinPos.x + " " + closestProteinPos.y + " ";
-		System.out.println(actionSpore);
+		// Simuler validation de SPORER
+		boolean sporerOk = validateAction("SPORER");
 
-		Organ sporeOrgan = new Organ(organ.id, 1, 1, new Pos(sporeX, sporeY));
-		System.err.println("Spore ID : " + sporeOrgan.id);
+		if (sporerOk) {
+			// Action 2 : SPORE
+			String actionSpore = "SPORE 3 " + closestProteinPos.x + " " + closestProteinPos.y;
+			System.out.println(actionSpore);
 
-		String actionType1 = "GROW 1 2 2 BASIC";
-		String actionType2 = "GROW 5 9 3 BASIC";
+			// Simuler validation de SPORE
+			boolean sporeOk = validateAction("SPORE");
 
-		String actionType3 = "GROW 8 9 3 BASIC";
-		String actionType4 = "GROW 7 3 3 BASIC";
+			if (sporeOk) {
+				// Action 3 : Débogage
+				Organ sporeOrgan = new Organ(organ.id, 1, 1, new Pos(sporeX, sporeY));
+				System.err.println("Spore ID : " + sporeOrgan.id);
+				String actionGrow1 = "GROW 1 9 3 BASIC";
+				String actionGrow2 = "GROW 5 9 3 BASIC";
+				System.out.println(actionGrow1);
+				System.out.println(actionGrow2);
+				putSporerCalled = true;
+			}
 
-		String actionType5 = "GROW 11 9 3 BASIC";
-		String actionType6 = "GROW 12 9 3 BASIC";
+		}
+	}
 
-		String actionType7 = "GROW 15 9 3 BASIC";
-		String actionType8 = "GROW 17 9 3 BASIC";
-
-		String actionType9 = "GROW 21 16 3 HARVESTER";
-		String actionType10 = "WAIT";
-
-		System.out.println(actionType1);
-		System.out.println(actionType2);
-		System.out.println(actionType3);
-		System.out.println(actionType4);
-		System.out.println(actionType5);
-		System.out.println(actionType6);
-		System.out.println(actionType7);
-		System.out.println(actionType8);
-		System.out.println(actionType9);
-		System.out.println(actionType10);
+	// Méthode simulant la validation d'une action
+	boolean validateAction(String actionType) {
+		// Logique pour valider si l'action a réussi
+		// Par exemple, lire une confirmation ou simuler un succès
+		System.err.println("Validating action: " + actionType);
+		return true; // Simuler que l'action est réussie
 	}
 }
 
@@ -584,7 +579,7 @@ class Player {
 				game.displayProteinsInSpecificArea();
 			}
 			game.updateProteinPositions();
-			game.reachProt(myA);
+			game.reachProt();
 		}
 	}
 }
