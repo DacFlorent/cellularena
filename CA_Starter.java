@@ -141,6 +141,7 @@ class Game {
 	List<Organ> oppOrgans;
 	Map<Integer, Organ> organMap;
 	Map<String, Pos> proteinPositions;
+	private int myA;
 
 	Game(int width, int height) {
 		grid = new Grid(width, height);
@@ -192,13 +193,13 @@ class Game {
 				Cell cell = grid.getCell(x, y);
 				if (cell.organ != null) {
 					Organ organ = cell.organ;
-					System.err.println("Organ ID: " + organ.id
-						+ ", Owner: " + organ.owner
-						+ ", Organ Parent ID: " + organ.parentId
-						+ ", Organ Root ID: " + organ.rootId
-						+ ", Type: " + organ.organType
-						+ ", Direction: " + organ.dir
-						+ ", Position: (" + x + ", " + y + ")");
+					//					System.err.println("Organ ID: " + organ.id
+					//						+ ", Owner: " + organ.owner
+					//						+ ", Organ Parent ID: " + organ.parentId
+					//						+ ", Organ Root ID: " + organ.rootId
+					//						+ ", Type: " + organ.organType
+					//						+ ", Direction: " + organ.dir
+					//						+ ", Position: (" + x + ", " + y + ")");
 				}
 			}
 		}
@@ -297,108 +298,137 @@ class Game {
 
 	// Rejoindre la position de la proteine la plus proche
 	void reachProt(int myA) {
+		this.myA = myA;
 
-		if (myA > 0) {
-			System.err.println(myA);
-			if (!myOrgans.isEmpty()) {
-				// Récupérez le dernier organe de la liste
-				Organ lastOrgan = myOrgans.get(myOrgans.size() - 1);
-				System.err.println("lastOrgan ID : " + lastOrgan.id);
-				Organ organ = myOrgans.get(0);
-				System.err.println("Organ ID : " + organ.id);
+		if (myA == 0) {
+			System.out.println("WAIT"); // Si myA est 0, on fait simplement une attente
+			return; // Sortir de la méthode pour ne pas exécuter le reste du code
+		}
 
-				Pos closestProteinPos = findClosestProteinInArea(lastOrgan);
-				String direction = "";
-				String actionType;
-				String actionType1;
-				String actionType2;
+		System.err.println("Stock Prot A : " + myA);
+		if (!myOrgans.isEmpty()) {
+			// Récupérez le dernier organe de la liste
+			Organ lastOrgan = myOrgans.get(myOrgans.size() - 1);
+			System.err.println("lastOrgan ID : " + lastOrgan.id);
+			Organ organ = myOrgans.get(0);
+			System.err.println("Organ ID : " + organ.id);
 
-				grid.width = 16;
-				grid.height = 7;
+			Pos closestProteinPos = findClosestProteinInArea(lastOrgan);
+			String direction = "";
+			String actionType;
 
-				if (closestProteinPos != null) {
-					int deltaX = closestProteinPos.x - lastOrgan.pos.x;
-					int deltaY = closestProteinPos.y - lastOrgan.pos.y;
+			grid.width = 16;
+			grid.height = 7;
 
-					if (deltaY > 0) {
-						direction = "S"; // Sud
-					} else if (deltaY < 0) {
-						direction = "N"; // Nord
-					} else if (deltaX > 0) {
-						direction = "E"; // Est
-					}
 
-					// affichage du delta Y :
-					System.err.println("delta Y : " + deltaY);
-					// affichage du delta X :
-					System.err.println("delta X : " + deltaX);
-					// si delta X = 2, HARVESTER, sinon BASIC
+			if (closestProteinPos != null) {
 
-					if (deltaX != 0 && deltaY != 0) {
-						// Gestion des diagonales
-						if (deltaX == 1) {
-							actionType = "GROW " + lastOrgan.id + " " + closestProteinPos.x + " " + closestProteinPos.y + " " + "HARVESTER " + direction;
-							System.out.println(actionType);
+				int deltaX = closestProteinPos.x - lastOrgan.pos.x;
+				int deltaY = closestProteinPos.y - lastOrgan.pos.y;
 
-							int numActions = 3;
-							// Appeler la méthode de mouvement HARVESTER et sortir pendant 3 tours
-							for (int i = 0; i < numActions; i++) {
-								reachNextProt(i); // Passer l'itération pour personnaliser l'action
-							}
-						} else if (deltaX > 2) {
-							putSporer(organ, lastOrgan, deltaY, closestProteinPos, direction, organ.pos);
+				if (deltaY > 0) {
+					direction = "S"; // Sud
+				} else if (deltaY < 0) {
+					direction = "N"; // Nord
+				} else if (deltaX > 0) {
+					direction = "E"; // Est
+				}
 
-						} else {
-							// Si c'est une diagonale avec une plus grande distance, on peut attendre ou gérer autrement
-							actionType = "GROW " + lastOrgan.id + " " + closestProteinPos.x + " " + closestProteinPos.y + " " + "BASIC " + direction;
+				// affichage du delta Y :
+				System.err.println("delta Y : " + deltaY);
+				// affichage du delta X :
+				System.err.println("delta X : " + deltaX);
+				// si delta X = 2, HARVESTER, sinon BASIC
+
+				if (deltaX != 0 && deltaY != 0) {
+					// Gestion des diagonales
+					if (deltaX == 1) {
+						actionType = "GROW " + lastOrgan.id + " " + closestProteinPos.x + " " + closestProteinPos.y + " " + "HARVESTER " + direction;
+						System.out.println(actionType);
+
+						int numActions = 3;
+						// Appeler la méthode de mouvement HARVESTER et sortir pendant 3 tours
+						for (int i = 0; i < numActions; i++) {
+							reachNextProt(i); // Passer l'itération pour personnaliser l'action
 						}
+					} else if (deltaX > 2) {
+						putSporer(organ, lastOrgan, deltaY, closestProteinPos, direction, organ.pos);
+
 					} else {
-						if (deltaX == 2) {
-							actionType = "GROW " + lastOrgan.id + " " + closestProteinPos.x + " " + closestProteinPos.y + " " + "HARVESTER " + direction;
-							System.out.println(actionType);
-							// sortir 3 tours
-							int numActions = 3;
-							for (int i = 0; i < numActions; i++) {
-								reachNextProt(i); // Passer l'itération pour personnaliser l'action
-							}
-						} else {
-							if (deltaX > 2) {
-								putSporer(organ, lastOrgan, deltaY, closestProteinPos, direction, organ.pos);
-							}
-						}
+						// Si c'est une diagonale avec une plus grande distance, on peut attendre ou gérer autrement
+						actionType = "GROW " + lastOrgan.id + " " + closestProteinPos.x + " " + closestProteinPos.y + " " + "BASIC " + direction;
 					}
 				} else {
-					// Aucune protéine trouvée : TENTACLE ATTAQUE APRES HARVESTER
-					List<CellType> cellTypes = checkCellAround(lastOrgan.pos, 2);  // Rayon de 2
-
-					// Affichage de ce qui a été trouvé
-					System.err.println("Cellules trouvées autour de la position : " + cellTypes);
-
-					if (cellTypes.contains(CellType.ORGAN)) {
-						actionType = "GROW " + lastOrgan.id + " 16 5 TENTACLE " + direction;
+					if (deltaX == 2) {
+						actionType = "GROW " + lastOrgan.id + " " + closestProteinPos.x + " " + closestProteinPos.y + " " + "HARVESTER " + direction;
 						System.out.println(actionType);
-						int numActions = 3; // Nombre d'actions à exécuter
+						// sortir 3 tours
+						int numActions = 3;
 						for (int i = 0; i < numActions; i++) {
-							afterTentacle(i); // Passer l'itération pour personnaliser l'action
+							reachNextProt(i); // Passer l'itération pour personnaliser l'action
 						}
-
 					} else {
-						actionType = "WAIT";
-						System.out.println(actionType);
+						if (deltaX > 2) {
+							putSporer(organ, lastOrgan, deltaY, closestProteinPos, direction, organ.pos);
+						}
 					}
 				}
 			} else {
-				System.err.println("Liste des organes vide !");
+				// Aucune protéine trouvée : TENTACLE ATTAQUE APRES HARVESTER
+				List<CellType> cellTypes = checkCellAround(lastOrgan.pos, 2);  // Rayon de 2
+
+				// Affichage de ce qui a été trouvé
+				System.err.println("Cellules trouvées autour de la position : " + cellTypes);
+
+				if (cellTypes.contains(CellType.ORGAN)) {
+					actionType = "GROW " + lastOrgan.id + " 16 5 TENTACLE " + direction;
+					System.out.println(actionType);
+					int numActions = 3; // Nombre d'actions à exécuter
+					for (int i = 0; i < numActions; i++) {
+						afterTentacle(i); // Passer l'itération pour personnaliser l'action
+					}
+
+				} else {
+					String actionType1 = "GROW 1 2 2 BASIC";
+					String actionType2 = "GROW 5 9 3 BASIC";
+
+					String actionType3 = "GROW 8 9 3 BASIC";
+					String actionType4 = "GROW 7 3 3 BASIC";
+
+					String actionType5 = "GROW 11 9 3 BASIC";
+					String actionType6 = "GROW 12 9 3 BASIC";
+
+					String actionType7 = "GROW 15 9 3 BASIC";
+					String actionType8 = "GROW 17 9 3 BASIC";
+
+					String actionType9 = "WAIT";
+					String actionType10 = "WAIT";
+
+					String actionType11 = "GROW 21 16 3 HARVESTER";
+					String actionType12 = "WAIT";
+
+					System.out.println(actionType1);
+					System.out.println(actionType2);
+					System.out.println(actionType3);
+					System.out.println(actionType4);
+					System.out.println(actionType5);
+					System.out.println(actionType6);
+					System.out.println(actionType7);
+					System.out.println(actionType8);
+
+					System.err.print("ici : actuellement");
+
+
+					System.out.println(actionType9);
+					System.out.println(actionType10);
+					System.out.println(actionType11);
+					System.out.println(actionType12);
+				}
 			}
-		} else if (myA == 0){
-			// Si myA <= 0, effectuer une action différente
+		} else {
 			String actionType = "WAIT";
 			System.out.println(actionType);
 		}
-	}
-
-	void wait (int iteration) {
-
 	}
 
 	void reachNextProt(int iteration) {
@@ -458,8 +488,6 @@ class Game {
 		String actionType9 = "GROW 21 16 3 HARVESTER";
 		String actionType10 = "WAIT";
 
-
-
 		System.out.println(actionType1);
 		System.out.println(actionType2);
 		System.out.println(actionType3);
@@ -470,7 +498,6 @@ class Game {
 		System.out.println(actionType8);
 		System.out.println(actionType9);
 		System.out.println(actionType10);
-
 	}
 }
 
