@@ -397,15 +397,15 @@ class Game {
         int sporeX = pos.x;
         int sporeY = pos.y;
 
-        if (deltaX > 1) {
+        if (deltaY < 0) {
             sporeX = 1;
             sporeY = 1;
             direction ="E";
-        } else if (deltaX < 0) {
+        } else if (deltaY > 0) {
             sporeX = 1;
             sporeY = 3;
             direction ="E";
-        } else if (deltaX == 0) {
+        } else if (deltaY == 0) {
             sporeX = 2;
             sporeY = 2;
             direction = "E";
