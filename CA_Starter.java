@@ -11,6 +11,10 @@ class Pos {
 		this.y = y;
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		return x == ((Pos)obj).x && y == ((Pos)obj).y;
+	}
 }
 
 class Organ {
@@ -22,7 +26,6 @@ class Organ {
 	Pos pos;
 	String organType;
 	String dir;
-	List<Organ> children;
 
 	Organ(int id, int owner, int parentId, int rootId, Pos pos, String organType, String dir) {
 		this.id = id;
@@ -32,7 +35,6 @@ class Organ {
 		this.pos = pos;
 		this.organType = organType;
 		this.dir = dir;
-		this.children = new ArrayList<>();
 	}
 
 	public Organ(int id, int owner, int rootId, Pos pos) {
@@ -41,6 +43,7 @@ class Organ {
 		this.rootId = rootId;
 		this.pos = pos;
 	}
+
 }
 
 class Cell {
@@ -59,6 +62,11 @@ class Cell {
 
 	Cell(Pos pos) {
 		this(pos, false, null, null);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		return pos.equals(((Cell)obj).pos);
 	}
 }
 
@@ -141,7 +149,6 @@ class Game {
 	List<Organ> oppOrgans;
 	Map<Integer, Organ> organMap;
 	Map<String, Pos> proteinPositions;
-	private int myA;
 
 	Game(int width, int height) {
 		grid = new Grid(width, height);
@@ -206,20 +213,20 @@ class Game {
 	}
 
 	// affichage des proteines uniquement sur la zone de jeu de mon Organe (area restreinte)
-	void displayProteinsInSpecificArea() {
-		List<Pos> proteinsInArea = new ArrayList<>();
-		// Parcourt les lignes entre Y = 1 et Y = 3 inclusivement
-		for (int y = 1; y <= 3; y++) {
-			// Parcourt les colonnes entre X = 1 et X = 16 inclusivement
-			for (int x = 1; x <= 16; x++) {
-				Cell cell = grid.getCell(x, y);
-				if (cell != null && cell.protein != null) {
-					proteinsInArea.add(cell.pos);
-					System.err.println("(Specific AREA) Protein " + cell.protein + " is at position " + x + ", " + y);
-				}
-			}
-		}
-	}
+	//	void displayProteinsInSpecificArea() {
+	//		List<Pos> proteinsInArea = new ArrayList<>();
+	//		// Parcourt les lignes entre Y = 1 et Y = 3 inclusivement
+	//		for (int y = 1; y <= 3; y++) {
+	//			// Parcourt les colonnes entre X = 1 et X = 16 inclusivement
+	//			for (int x = 1; x <= 16; x++) {
+	//				Cell cell = grid.getCell(x, y);
+	//				if (cell != null && cell.protein != null) {
+	//					proteinsInArea.add(cell.pos);
+	//					System.err.println("(Specific AREA) Protein " + cell.protein + " is at position " + x + ", " + y);
+	//				}
+	//			}
+	//		}
+	//	}
 
 	Pos findClosestProteinInArea(Organ organ) {
 		List<Pos> proteinsInArea = getProteinsInSpecificArea();
@@ -280,7 +287,6 @@ class Game {
 		return cellTypes;
 	}
 
-
 	List<Pos> getProteinsInSpecificArea() {
 		List<Pos> proteinsInArea = new ArrayList<>();
 
@@ -297,15 +303,11 @@ class Game {
 		return proteinsInArea;
 	}
 
+	static boolean hasSporer = false;
+	static boolean hasSpore = false;
+
 	// Rejoindre la position de la proteine la plus proche
-	private boolean putSporerCalled = false;
-
-	private boolean alreadyCalled() {
-		return putSporerCalled;
-	}
-
 	void reachProt() {
-
 		if (!myOrgans.isEmpty()) {
 			// Récupérez le dernier organe de la liste
 			Organ lastOrgan = myOrgans.get(myOrgans.size() - 1);
@@ -319,7 +321,6 @@ class Game {
 
 			grid.width = 16;
 			grid.height = 7;
-
 
 			if (closestProteinPos != null) {
 
@@ -346,30 +347,47 @@ class Game {
 						actionType = "GROW " + lastOrgan.id + " " + closestProteinPos.x + " " + closestProteinPos.y + " " + "HARVESTER " + direction;
 						System.out.println(actionType);
 
-//						int numActions = 3;
-//						// Appeler la méthode de mouvement HARVESTER et sortir pendant 3 tours
-//						for (int i = 0; i < numActions; i++) {
-//							reachNextProt(i); // Passer l'itération pour personnaliser l'action
-//						}
-					} else if (deltaX > 2) {
-						if (!alreadyCalled()) {
-							putSporer(organ, lastOrgan, deltaY, closestProteinPos, direction, organ.pos);
+						int numActions = 3;
+						// Appeler la méthode de mouvement HARVESTER et sortir pendant 3 tours
+						for (int i = 0; i < numActions; i++) {
+							reachNextProt(i); // Passer l'itération pour personnaliser l'action
 						}
-
+					} else if (deltaX > 2) {
+						putSporer(organ, lastOrgan, deltaY, closestProteinPos, direction, organ.pos);
+						hasSporer = true;
+						if (hasSporer == true) {
+							shootSpore(closestProteinPos, direction);
+							hasSpore = true;
+							if (hasSpore == true) {
+								actionType = "GROW 5 " + closestProteinPos.x + " " + closestProteinPos.y + " " + "HARVESTER E";
+								System.out.println(actionType);
+							}
+						}
+					} else {
+						// Si c'est une diagonale avec une plus grande distance, on peut attendre ou gérer autrement
+						actionType = "GROW " + lastOrgan.id + " " + closestProteinPos.x + " " + closestProteinPos.y + " " + "BASIC " + direction;
+						System.out.println(actionType);
 					}
 				} else {
 					if (deltaX == 2) {
 						actionType = "GROW " + lastOrgan.id + " " + closestProteinPos.x + " " + closestProteinPos.y + " " + "HARVESTER " + direction;
 						System.out.println(actionType);
 						// sortir 3 tours
-//						int numActions = 3;
-//						for (int i = 0; i < numActions; i++) {
-//							reachNextProt(i); // Passer l'itération pour personnaliser l'action
-//						}
+						int numActions = 3;
+						for (int i = 0; i < numActions; i++) {
+							reachNextProt(i); // Passer l'itération pour personnaliser l'action
+						}
 					} else {
 						if (deltaX > 2) {
-							if (!alreadyCalled()) {
-								putSporer(organ, lastOrgan, deltaY, closestProteinPos, direction, organ.pos);
+							putSporer(organ, lastOrgan, deltaY, closestProteinPos, direction, organ.pos);
+							hasSporer = true;
+							if (hasSporer == true) {
+								shootSpore(closestProteinPos, direction);
+								hasSpore = true;
+								if (hasSpore == true) {
+									actionType = "GROW 5 " + closestProteinPos.x + " " + closestProteinPos.y + " " + "HARVESTER E";
+									System.out.println(actionType);
+								}
 							}
 						}
 					}
@@ -377,47 +395,30 @@ class Game {
 			} else {
 				// Aucune protéine trouvée : TENTACLE ATTAQUE APRES HARVESTER
 				List<CellType> cellTypes = checkCellAround(lastOrgan.pos, 2);  // Rayon de 2
+
 				// Affichage de ce qui a été trouvé
 				System.err.println("Cellules trouvées autour de la position : " + cellTypes);
 
 				if (cellTypes.contains(CellType.ORGAN)) {
 					actionType = "GROW " + lastOrgan.id + " 16 5 TENTACLE " + direction;
 					System.out.println(actionType);
-//					int numActions = 3; // Nombre d'actions à exécuter
-//					for (int i = 0; i < numActions; i++) {
-//						afterTentacle(i); // Passer l'itération pour personnaliser l'action
-//					}
-				} else {
-//					String[] actions = {
-//							"GROW 7 9 3 BASIC", "GROW 8 3 3 BASIC",
-//							"GROW 11 9 3 BASIC", "GROW 12 9 3 BASIC",
-//							"GROW 18 9 3 BASIC", "GROW 16 9 3 BASIC",
-//							"GROW 20 16 3 HARVESTER", "WAIT"
-//					};
-//
-//					for (int i = 0; i < actions.length; i += 2) {
-//						if (i + 1 < actions.length) {  // Vérifier si une deuxième action existe
-//							// Afficher les deux actions successivement
-//							System.out.println(actions[i]);
-//							System.out.println(actions[i + 1]);
-//						} else {
-//							// Afficher l'action restante si elle existe
-//							System.out.println(actions[i]);
-//						}
-//					}
-
-					int numActions = 0;
-					for (int i = 0; ; i++) {
-						noProtA(i);
-						if (i >= 100) {  // Après 10 itérations, sortir de la boucle
-							break;
-						}
+					int numActions = 3; // Nombre d'actions à exécuter
+					for (int i = 0; i < numActions; i++) {
+						afterTentacle(i); // Passer l'itération pour personnaliser l'action
 					}
+
+				} else {
+					String actionType1 = "GROW " + organ.id + " " + "14 3 BASIC " + direction;
+					String actionType2 = "GROW " + lastOrgan.id + " " + "14 3 BASIC " + direction;
+
+					System.out.println(actionType1);
+					System.out.println(actionType2);
+
 				}
 			}
 		} else {
-			String wait = "WAIT";
-			System.out.println(wait);
+			String actionType = "WAIT";
+			System.out.println(actionType);
 		}
 	}
 
@@ -426,11 +427,6 @@ class Game {
 		String direction = "N";
 
 		String actionType = "GROW 1 11 5 BASIC";
-		System.out.println(actionType);
-	}
-
-	void noProtA(int iteration) {
-		String actionType = "WAIT";
 		System.out.println(actionType);
 	}
 
@@ -459,41 +455,222 @@ class Game {
 			sporeX = 2;
 			sporeY = 2;
 		}
-		String actionType = "GROW " + organ.id + " " + sporeX + " " + sporeY + " SPORER " + direction;
+		String actionType = "GROW " + organ.id + " " + sporeX + " " + sporeY + " " + "SPORER " + direction;
 		System.out.println(actionType);
 
-		// Simuler validation de SPORER
-		boolean sporerOk = validateAction("SPORER");
+		//		String actionSpore = "SPORE 3 " + closestProteinPos.x + " " + closestProteinPos.y + " ";
+		//		System.out.println(actionSpore);
 
-		if (sporerOk) {
-			// Action 2 : SPORE
-			String actionSpore = "SPORE 3 " + closestProteinPos.x + " " + closestProteinPos.y;
-			System.out.println(actionSpore);
+		//		String actionType1 = "GROW " + organ.id + " " + "9 3 BASIC " + direction;
+		//		String actionType2 = "GROW " + lastOrgan.id + " " + "9 3 BASIC " + direction;
+		//
+		//		String actionType9 = "GROW " + lastOrgan.id + " " +  "16 3 HARVESTER";
+		//		String actionType10 = "WAIT";
+		//
+		//		System.out.println(actionType1);
+		//		System.out.println(actionType2);
+		//		System.out.println(actionType9);
+		//		System.out.println(actionType10);
+	}
 
-			// Simuler validation de SPORE
-			boolean sporeOk = validateAction("SPORE");
+	void shootSpore(Pos closestProteinPos, String direction) {
+		direction = "E";
+		int shootX = (closestProteinPos.x - 2);
+		int shootY = closestProteinPos.y;
 
-			if (sporeOk) {
-				// Action 3 : Débogage
-				Organ sporeOrgan = new Organ(organ.id, 1, 1, new Pos(sporeX, sporeY));
-				System.err.println("Spore ID : " + sporeOrgan.id);
-				String actionGrow1 = "GROW 1 9 3 BASIC";
-				String actionGrow2 = "GROW 5 9 3 BASIC";
-				System.out.println(actionGrow1);
-				System.out.println(actionGrow2);
-				putSporerCalled = true;
+		String actionSpore = "SPORE 3 " + shootX + " " + shootY + " " + direction;
+		System.out.println(actionSpore);
+	}
+
+	// Récuperation des cellules autour de mon organe
+	public List<Cell> getNeighbours(Organ organ) {
+		// création de la liste de ces cellules
+		List<Cell> resultNeighbours = new ArrayList<>();
+		// ajout dans la liste des cellules voisines à mon organe
+		Cell cellE = grid.getCell((organ.pos.x + 1), organ.pos.y);
+		Cell cellW = grid.getCell((organ.pos.x - 1), organ.pos.y);
+		Cell cellN = grid.getCell(organ.pos.x, (organ.pos.y - 1));
+		Cell cellS = grid.getCell(organ.pos.x, (organ.pos.y + 1));
+		if (cellE != null) {
+			resultNeighbours.add(cellE);
+		}
+		if (cellW != null) {
+			resultNeighbours.add(cellW);
+		}
+		if (cellN != null) {
+			resultNeighbours.add(cellN);
+		}
+		if (cellS != null) {
+			resultNeighbours.add(cellS);
+		}
+		// retourne cette liste
+		return resultNeighbours;
+	}
+
+	// Liste des actions possibles
+	public List<Actions> availableActions() {
+		// Création de la liste des actions
+		List<Actions> availableAction = new ArrayList<>();
+		// Ajout dans la liste des actions possibles
+		availableAction.add(Actions.GROW);
+		availableAction.add(Actions.SPORER);
+		availableAction.add(Actions.TENTACLE);
+		availableAction.add(Actions.WAIT);
+
+
+		return availableAction;
+	}
+	// association Actions avec Scores
+	public Map<Actions, Integer> actionScores() {
+		Map<Actions, Integer> scores = new HashMap<>();
+		scores.put(Actions.GROW, 30);      // Score pour GROW
+		scores.put(Actions.SPORER, 20);   // Score pour SPORER
+		scores.put(Actions.TENTACLE, 10); // Score pour TENTACLE
+		scores.put(Actions.WAIT, 0);      // Score pour WAIT
+//		System.err.println("score Grow : " + scores.get(Actions.GROW));
+//		System.err.println("score Sporer : " + scores.get(Actions.SPORER));
+//		System.err.println("score Tentacle : " + scores.get(Actions.TENTACLE));
+//		System.err.println("score Wait : " + scores.get(Actions.WAIT));
+
+		return scores;
+	}
+	// association Actions avec Ressources
+	public Map<Actions,Map<Resources, Integer>> actionRessources() {
+		Map<Actions, Map<Resources, Integer>> spendForAction = new HashMap<>();
+		// For GROW (BASIC)
+		Map<Resources, Integer> basicResources = new HashMap<>();
+		basicResources.put(Resources.A, 1);
+		spendForAction.put(Actions.BASIC, basicResources);
+		// For HARVESTER
+		Map<Resources, Integer> harvesterResources = new HashMap<>();
+		harvesterResources.put(Resources.C, 1);
+		harvesterResources.put(Resources.D, 1);
+		spendForAction.put(Actions.HARVESTER, harvesterResources);
+		// For TENTACLE
+		Map<Resources, Integer> tentacleResources = new HashMap<>();
+		tentacleResources.put(Resources.B, 1);
+		tentacleResources.put(Resources.C, 1);
+		spendForAction.put(Actions.TENTACLE, tentacleResources);
+		// For SPORER
+		Map<Resources, Integer> sporerResources = new HashMap<>();
+		sporerResources.put(Resources.B, 1);
+		sporerResources.put(Resources.D, 1);
+		spendForAction.put(Actions.SPORER, sporerResources);
+		// For ROOT
+		Map<Resources, Integer> rootResources = new HashMap<>();
+		rootResources.put(Resources.A,1);
+		rootResources.put(Resources.B,1);
+		rootResources.put(Resources.C,1);
+		rootResources.put(Resources.D,1);
+		spendForAction.put(Actions.ROOT, rootResources);
+
+		return spendForAction;
+	}
+
+}
+
+class Action {
+
+	// BASIC = Prot A
+	// HARVESTER = Prot C + D
+	// TENTACLE = B + C
+	// SPORER = B + D
+	// ROOT = A + B + C + D
+
+	static void ActionByProtein(int myA, int myB, int myC, int myD) {
+		int countA = myA;
+		int countB = myB;
+		int countC = myC;
+		int countD = myD;
+		System.err.println("countA : " + countA);
+		System.err.println("countB : " + countB);
+		System.err.println("countC : " + countC);
+		System.err.println("countD : " + countD);
+	}
+
+	// 1 : Définir mes organes
+	// 2 : Recherche autour de mes organes en n+1
+	// 3 : Selon les cases autour => Définir les actions possibles
+	// 4 : Parmis les actions possibles définir un score par action
+	// 5 : Classement des actions les plus rentables (gestion des égalités)
+	// 6 : Selon les ressources voir si l'action est faisable
+
+	// 1 : Affichage de mes organes (owner = 1)
+	static void displayOrgansOnGrid(Grid grid) {
+		for (int y = 0; y < grid.height; y++) {
+			for (int x = 0; x < grid.width; x++) {
+				Cell cell = grid.getCell(x, y);
+				if (cell.organ != null) {
+					Organ organ = cell.organ;
+					if (organ.owner == 1) {
+						System.err.println("Organ ID: " + organ.id
+								+ ", Owner: " + organ.owner
+								+ ", Organ Parent ID: " + organ.parentId
+								+ ", Organ Root ID: " + organ.rootId
+								+ ", Type: " + organ.organType
+								+ ", Direction: " + organ.dir
+								+ ", Position: (" + x + ", " + y + ")");
+					}
+				}
 			}
-
 		}
 	}
 
-	// Méthode simulant la validation d'une action
-	boolean validateAction(String actionType) {
-		// Logique pour valider si l'action a réussi
-		// Par exemple, lire une confirmation ou simuler un succès
-		System.err.println("Validating action: " + actionType);
-		return true; // Simuler que l'action est réussie
+	// 2 : Retourne listes cases dispo (4 directions) autour de mes organes
+	static Set<Cell> checkCellAround(List<Organ> myOrgans, Game game) {
+		// Cases dispo autour de mes organes
+		Set<Cell> cells = new HashSet<>();
+
+		for (int i = 0; i < myOrgans.size(); i++) {
+			Organ organ = myOrgans.get(i);
+			List<Cell> neighbours = game.getNeighbours(organ);
+			for (Cell neighbour : neighbours) {
+				if (!neighbour.isWall && neighbour.organ == null) {
+					cells.add(neighbour);
+					System.err.println("Available for grow at X : " + neighbour.pos.x + ", Y : " + neighbour.pos.y);
+				}
+			}
+		}
+		return cells;
 	}
+
+	// 3 : définir les actions possibles
+	static List<Actions> availableActions(Set<Cell> neighbours, Game game) {
+		List<Actions> actions = new ArrayList<>();
+		// liste des actions possibles selon les cases dispo
+		for (Cell neighbour : neighbours) {
+			// Vérifie les conditions de base pour ajouter les actions
+			if (!neighbour.isWall && neighbour.organ == null) {
+				// Ajoute toutes les actions disponibles pour cette cellule
+				actions.addAll(game.availableActions());
+//				System.err.println("Available actons : " + game.availableActions());
+			}
+		}
+		return actions;
+	}
+	// 4 (dans la class game)
+	// 5 choisir parmis les actions possibles celle avec le score le plus haut
+    static Actions chooseBestAction(List<Actions> actions, Game game) {
+		// Récupère la map des actions et leurs scores
+		Map<Actions, Integer> actionScores = game.actionScores();
+		// Action avec le meilleur score
+		Actions bestAction = null;
+		// Initialise le score le plus bas possible
+		int highestScore = Integer.MIN_VALUE;
+
+		// Compare les scores des actions disponibles
+		for (Actions action : actions) {
+			int score = actionScores.get(action);
+			if (score > highestScore) {
+				bestAction = action;
+				highestScore = score;
+			}
+		}
+		System.err.println("Best action chosen: " + bestAction + " with score: " + highestScore);
+		return bestAction;
+	}
+	// 6 Selon les ressources voir si l'action est faisable
+
 }
 
 /**
@@ -571,15 +748,23 @@ class Player {
 
 			int requiredActionsCount = in.nextInt(); // your number of organisms, output an action for each one in any order
 			for (int i = 0; i < requiredActionsCount; i++) {
+				System.err.println("Actions count : " + requiredActionsCount);
 				// Write an action using System.out.println()
 				// To debug: System.err.println("Debug messages...");
 				// game.grid.displayGrid();
-				game.displayOrgansOnGrid();
-				game.displayProteinsOnGrid();
-				game.displayProteinsInSpecificArea();
 			}
-			game.updateProteinPositions();
-			game.reachProt();
+			//			game.displayOrgansOnGrid();
+			//			game.displayProteinsOnGrid();
+			//			game.displayProteinsInSpecificArea();
+			//			game.updateProteinPositions();
+			//			game.reachProt();
+			Action.ActionByProtein(myA, myB, myC, myD);
+			Action.displayOrgansOnGrid(game.grid);
+			Set<Cell> cellNeighbour = Action.checkCellAround(game.myOrgans, game);
+			Action.availableActions(cellNeighbour, game);
+			game.actionScores();
+			List<Actions> bestActions = Action.availableActions(cellNeighbour,game);
+			Action.chooseBestAction(bestActions,game);
 		}
 	}
 }
@@ -588,14 +773,13 @@ enum Direction {
 	N, E, S, W;
 }
 
-enum OrganType {
-	ROOT, HARVESTER, BASIC;
-}
-
-enum ActionType {
-	GROW, WAIT, TENTACLE, SPORER;
+enum Actions {
+	GROW, WAIT, TENTACLE, SPORER, HARVESTER, BASIC, ROOT;
 }
 
 enum CellType {
 	WALL, EMPTY, PROTEIN, ORGAN
+}
+enum Resources {
+	A,B,C,D
 }
