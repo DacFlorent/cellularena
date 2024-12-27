@@ -690,7 +690,7 @@ class Action {
 		// Choisir un voisin (ajouter une logique si nécessaire)
 		Cell selectedNeighbour = neighbours.get(0); // Exemple : le premier voisin
 
-		// Construire l'action avec les éléments réutilisés
+		// Faire l'action
 		String doAction = String.format(
 				"%s %d %d %d %s",
 				"GROW",                     	// GROW
