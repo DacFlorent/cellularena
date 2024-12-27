@@ -512,7 +512,7 @@ class Game {
 		// Création de la liste des actions
 		List<Actions> availableAction = new ArrayList<>();
 		// Ajout dans la liste des actions possibles
-		availableAction.add(Actions.GROW);
+		availableAction.add(Actions.BASIC);
 		availableAction.add(Actions.SPORER);
 		availableAction.add(Actions.TENTACLE);
 		availableAction.add(Actions.WAIT);
@@ -523,7 +523,7 @@ class Game {
 	// association Actions avec Scores
 	public Map<Actions, Integer> actionScores() {
 		Map<Actions, Integer> scores = new HashMap<>();
-		scores.put(Actions.GROW, 30);      // Score pour GROW
+		scores.put(Actions.BASIC, 30);      // Score pour GROW
 		scores.put(Actions.SPORER, 20);   // Score pour SPORER
 		scores.put(Actions.TENTACLE, 10); // Score pour TENTACLE
 		scores.put(Actions.WAIT, 0);      // Score pour WAIT
@@ -666,11 +666,20 @@ class Action {
 				highestScore = score;
 			}
 		}
-		System.err.println("Best action chosen: " + bestAction + " with score: " + highestScore);
+		System.err.println("Best action : " + bestAction + " with score: " + highestScore);
 		return bestAction;
 	}
 	// 6 Selon les ressources voir si l'action est faisable
+	static void displayResourcesForAction(Actions bestAction, Game game) {
+		// Récupère les ressources nécessaires pour l'action choisie
+		Map<Resources, Integer> resourcesRequired = game.actionRessources().get(bestAction);
 
+		// Affiche les ressources nécessaires pour l'action choisie
+		System.err.println("Resources needed for action (" + bestAction + "):");
+		for (Map.Entry<Resources, Integer> entry : resourcesRequired.entrySet()) {
+			System.err.println(entry.getKey() + ": " + entry.getValue());
+		}
+	}
 }
 
 /**
@@ -764,7 +773,8 @@ class Player {
 			Action.availableActions(cellNeighbour, game);
 			game.actionScores();
 			List<Actions> bestActions = Action.availableActions(cellNeighbour,game);
-			Action.chooseBestAction(bestActions,game);
+			Actions bestAction = Action.chooseBestAction(bestActions,game);
+			Action.displayResourcesForAction(bestAction, game);
 		}
 	}
 }
