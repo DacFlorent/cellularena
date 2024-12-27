@@ -627,7 +627,7 @@ class Action {
 			for (Cell neighbour : neighbours) {
 				if (!neighbour.isWall && neighbour.organ == null) {
 					cells.add(neighbour);
-					System.err.println("Available for grow at X : " + neighbour.pos.x + ", Y : " + neighbour.pos.y);
+//					System.err.println("Available for grow at X : " + neighbour.pos.x + ", Y : " + neighbour.pos.y);
 				}
 			}
 		}
@@ -643,7 +643,7 @@ class Action {
 			if (!neighbour.isWall && neighbour.organ == null) {
 				// Ajoute toutes les actions disponibles pour cette cellule
 				actions.addAll(game.availableActions());
-//				System.err.println("Available actons : " + game.availableActions());
+//				System.err.println("Available actions : " + game.availableActions());
 			}
 		}
 		return actions;
@@ -679,6 +679,31 @@ class Action {
 		for (Map.Entry<Resources, Integer> entry : resourcesRequired.entrySet()) {
 			System.err.println(entry.getKey() + ": " + entry.getValue());
 		}
+	}
+	// 7 faire l'action
+	static String doAction(Actions bestAction, Game game) {
+		Organ myOrgan = game.myOrgans.get(0); // Choisir le premier organe, ou ajouter une logique pour un organe spécifique
+
+		// Récupérer les voisins de l'organe
+		List<Cell> neighbours = game.getNeighbours(myOrgan);
+
+		// Choisir un voisin (ajouter une logique si nécessaire)
+		Cell selectedNeighbour = neighbours.get(0); // Exemple : le premier voisin
+
+		// Construire l'action avec les éléments réutilisés
+		String doAction = String.format(
+				"%s %d %d %d %s",
+				"GROW",                     	// GROW
+				myOrgan.id,                     // L'ID de l'organe
+				selectedNeighbour.pos.x,        // La position X du voisin
+				selectedNeighbour.pos.y,        // La position Y du voisin
+				bestAction						// La meilleure action
+		);
+
+		// Afficher et retourner l'action
+		System.err.println(doAction);
+		System.out.println(doAction);
+		return doAction;
 	}
 }
 
@@ -775,6 +800,7 @@ class Player {
 			List<Actions> bestActions = Action.availableActions(cellNeighbour,game);
 			Actions bestAction = Action.chooseBestAction(bestActions,game);
 			Action.displayResourcesForAction(bestAction, game);
+			Action.doAction(bestAction, game);
 		}
 	}
 }
