@@ -681,14 +681,14 @@ class Action {
 		}
 	}
 	// 7 faire l'action
-	static String doAction(Actions bestAction, Game game) {
+	static String doAction(Actions bestAction, Game game, Set<Cell> availableCells) {
 		Organ myOrgan = game.myOrgans.get(0); // Choisir le premier organe, ou ajouter une logique pour un organe spécifique
 
 		// Récupérer les voisins de l'organe
 		List<Cell> neighbours = game.getNeighbours(myOrgan);
 
 		// Choisir un voisin (ajouter une logique si nécessaire)
-		Cell selectedNeighbour = neighbours.get(0); // Exemple : le premier voisin
+		Cell selectedNeighbour = availableCells.iterator().next();
 
 		// Faire l'action
 		String doAction = String.format(
@@ -800,7 +800,7 @@ class Player {
 			List<Actions> bestActions = Action.availableActions(cellNeighbour,game);
 			Actions bestAction = Action.chooseBestAction(bestActions,game);
 			Action.displayResourcesForAction(bestAction, game);
-			Action.doAction(bestAction, game);
+			Action.doAction(bestAction, game,cellNeighbour);
 		}
 	}
 }
