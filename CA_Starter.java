@@ -617,21 +617,31 @@ class Action {
 	}
 
 	// 2 : Retourne listes cases dispo (4 directions) autour de mes organes
-	static Set<Cell> checkCellAround(List<Organ> myOrgans, Game game) {
+	static Map<String, Set<Cell>> checkCellAround(List<Organ> myOrgans, Game game) {
 		// Cases dispo autour de mes organes
-		Set<Cell> cells = new HashSet<>();
+		Set<Cell> emptyCells = new HashSet<>();
+		Set<Cell> proteinCells = new HashSet<>();
 
 		for (int i = 0; i < myOrgans.size(); i++) {
 			Organ organ = myOrgans.get(i);
 			List<Cell> neighbours = game.getNeighbours(organ);
 			for (Cell neighbour : neighbours) {
 				if (!neighbour.isWall && neighbour.organ == null) {
-					cells.add(neighbour);
-//					System.err.println("Available for grow at X : " + neighbour.pos.x + ", Y : " + neighbour.pos.y);
+					if (Objects.equals(neighbour.protein, "A") || Objects.equals(neighbour.protein, "B") || Objects.equals(neighbour.protein, "C") || Objects.equals(neighbour.protein, "D")) {
+						proteinCells.add(neighbour);
+						System.err.println("Protein available at X : " + neighbour.pos.x + ", Y : " + neighbour.pos.y);
+					} else {
+						emptyCells.add(neighbour);
+//					System.err.println("Empty cell for grow at X : " + neighbour.pos.x + ", Y : " + neighbour.pos.y);
+					}
 				}
 			}
 		}
-		return cells;
+		Map<String, Set<Cell>> cellsAround = new HashMap<>();
+		cellsAround.put("empty", emptyCells);
+		cellsAround.put("protein", proteinCells);
+
+		return cellsAround;
 	}
 
 	// 3 : définir les actions possibles
@@ -650,7 +660,7 @@ class Action {
 	}
 	// 4 (dans la class game)
 	// 5 choisir parmis les actions possibles celle avec le score le plus haut
-    static Actions chooseBestAction(List<Actions> actions, Game game) {
+	static Actions chooseBestAction(List<Actions> actions, Game game) {
 		// Récupère la map des actions et leurs scores
 		Map<Actions, Integer> actionScores = game.actionScores();
 		// Action avec le meilleur score
@@ -792,15 +802,25 @@ class Player {
 			//			game.displayProteinsInSpecificArea();
 			//			game.updateProteinPositions();
 			//			game.reachProt();
+
+			Map<String, Set<Cell>> cellNeighbour = Action.checkCellAround(game.myOrgans, game);
+			Set<Cell> emptyCells = cellNeighbour.get("empty");
+			Set<Cell> proteinCells = cellNeighbour.get("protein");
+
+			Set<Cell> allCells = new HashSet<>();
+			allCells.addAll(emptyCells);
+			allCells.addAll(proteinCells);
+
+
 			Action.ActionByProtein(myA, myB, myC, myD);
 			Action.displayOrgansOnGrid(game.grid);
-			Set<Cell> cellNeighbour = Action.checkCellAround(game.myOrgans, game);
-			Action.availableActions(cellNeighbour, game);
+			Action.availableActions(emptyCells, game);
+			Action.availableActions(proteinCells, game);
 			game.actionScores();
-			List<Actions> bestActions = Action.availableActions(cellNeighbour,game);
+			List<Actions> bestActions = Action.availableActions(allCells,game);
 			Actions bestAction = Action.chooseBestAction(bestActions,game);
 			Action.displayResourcesForAction(bestAction, game);
-			Action.doAction(bestAction, game,cellNeighbour);
+			Action.doAction(bestAction, game,allCells);
 		}
 	}
 }
