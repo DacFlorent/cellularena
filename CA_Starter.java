@@ -520,10 +520,10 @@ class Game {
 
 		return availableAction;
 	}
-	// association Actions avec Scores
+	//  4 association Actions avec Scores
 	public Map<Actions, Integer> actionScores() {
 		Map<Actions, Integer> scores = new HashMap<>();
-		scores.put(Actions.BASIC, 30);      // Score pour GROW
+		scores.put(Actions.BASIC, 30);      // Score pour BASIC
 		scores.put(Actions.SPORER, 20);   // Score pour SPORER
 		scores.put(Actions.TENTACLE, 10); // Score pour TENTACLE
 		scores.put(Actions.WAIT, 0);      // Score pour WAIT
@@ -590,10 +590,9 @@ class Action {
 
 	// 1 : Définir mes organes
 	// 2 : Recherche autour de mes organes en n+1
-	// 3 : Selon les cases autour => Définir les actions possibles
-	// 4 : Parmis les actions possibles définir un score par action
-	// 5 : Classement des actions les plus rentables (gestion des égalités)
-	// 6 : Selon les ressources voir si l'action est faisable
+	// 3 : Selon les cases autour => Définir les actions possibles Parmis les actions possibles définir un score par action (méthode rouge)
+	// 4 : Classement des actions les plus rentables (gestion des égalités) -> SORT
+	// 5 : Selon les ressources voir si l'action est faisable (PRENDRE LA PREMIERE REALISABLE)
 
 	// 1 : Affichage de mes organes (owner = 1)
 	static void displayOrgansOnGrid(Grid grid) {
@@ -617,50 +616,45 @@ class Action {
 	}
 
 	// 2 : Retourne listes cases dispo (4 directions) autour de mes organes
-	static Map<String, Set<Cell>> checkCellAround(List<Organ> myOrgans, Game game) {
+	static Set<Cell> checkCellAround(List<Organ> myOrgans, Game game) {
 		// Cases dispo autour de mes organes
-		Set<Cell> emptyCells = new HashSet<>();
-		Set<Cell> proteinCells = new HashSet<>();
+		Set<Cell> cells = new HashSet<>();
 
 		for (int i = 0; i < myOrgans.size(); i++) {
 			Organ organ = myOrgans.get(i);
 			List<Cell> neighbours = game.getNeighbours(organ);
 			for (Cell neighbour : neighbours) {
 				if (!neighbour.isWall && neighbour.organ == null) {
-					if (Objects.equals(neighbour.protein, "A") || Objects.equals(neighbour.protein, "B") || Objects.equals(neighbour.protein, "C") || Objects.equals(neighbour.protein, "D")) {
-						proteinCells.add(neighbour);
-						System.err.println("Protein available at X : " + neighbour.pos.x + ", Y : " + neighbour.pos.y);
-					} else {
-						emptyCells.add(neighbour);
-//					System.err.println("Empty cell for grow at X : " + neighbour.pos.x + ", Y : " + neighbour.pos.y);
-					}
+					cells.add(neighbour);
+//					System.err.println("Available for grow at X : " + neighbour.pos.x + ", Y : " + neighbour.pos.y);
 				}
 			}
 		}
-		Map<String, Set<Cell>> cellsAround = new HashMap<>();
-		cellsAround.put("empty", emptyCells);
-		cellsAround.put("protein", proteinCells);
-
-		return cellsAround;
+		return cells;
 	}
 
 	// 3 : définir les actions possibles
-	static List<Actions> availableActions(Set<Cell> neighbours, Game game) {
-		List<Actions> actions = new ArrayList<>();
+	static List<Option> computeAvailableActions(Set<Cell> neighbours, Game game) {
+		List<Option> options = new ArrayList<>();
 		// liste des actions possibles selon les cases dispo
 		for (Cell neighbour : neighbours) {
 			// Vérifie les conditions de base pour ajouter les actions
 			if (!neighbour.isWall && neighbour.organ == null) {
 				// Ajoute toutes les actions disponibles pour cette cellule
-				actions.addAll(game.availableActions());
+				options.addAll(game.computeAvailableActions(neighbour));
 //				System.err.println("Available actions : " + game.availableActions());
 			}
 		}
-		return actions;
+		return options;
+	}
+	static class Option{
+		Action action;
+		Cell neighbour;
+		int score;
 	}
 	// 4 (dans la class game)
 	// 5 choisir parmis les actions possibles celle avec le score le plus haut
-	static Actions chooseBestAction(List<Actions> actions, Game game) {
+    static Actions chooseBestAction(List<Actions> actions, Game game) {
 		// Récupère la map des actions et leurs scores
 		Map<Actions, Integer> actionScores = game.actionScores();
 		// Action avec le meilleur score
@@ -679,6 +673,9 @@ class Action {
 		System.err.println("Best action : " + bestAction + " with score: " + highestScore);
 		return bestAction;
 	}
+	// si plusieurs actions avec le score identiques choisir celle avec une protéine
+
+
 	// 6 Selon les ressources voir si l'action est faisable
 	static void displayResourcesForAction(Actions bestAction, Game game) {
 		// Récupère les ressources nécessaires pour l'action choisie
@@ -690,7 +687,7 @@ class Action {
 			System.err.println(entry.getKey() + ": " + entry.getValue());
 		}
 	}
-	// 7 faire l'action
+	// 7 Faire l'action
 	static String doAction(Actions bestAction, Game game, Set<Cell> availableCells) {
 		Organ myOrgan = game.myOrgans.get(0); // Choisir le premier organe, ou ajouter une logique pour un organe spécifique
 
@@ -802,25 +799,14 @@ class Player {
 			//			game.displayProteinsInSpecificArea();
 			//			game.updateProteinPositions();
 			//			game.reachProt();
-
-			Map<String, Set<Cell>> cellNeighbour = Action.checkCellAround(game.myOrgans, game);
-			Set<Cell> emptyCells = cellNeighbour.get("empty");
-			Set<Cell> proteinCells = cellNeighbour.get("protein");
-
-			Set<Cell> allCells = new HashSet<>();
-			allCells.addAll(emptyCells);
-			allCells.addAll(proteinCells);
-
-
 			Action.ActionByProtein(myA, myB, myC, myD);
 			Action.displayOrgansOnGrid(game.grid);
-			Action.availableActions(emptyCells, game);
-			Action.availableActions(proteinCells, game);
-			game.actionScores();
-			List<Actions> bestActions = Action.availableActions(allCells,game);
-			Actions bestAction = Action.chooseBestAction(bestActions,game);
+			Set<Cell> cellNeighbour = Action.checkCellAround(game.myOrgans, game);
+			List<Action.Option> options = Action.computeAvailableActions(cellNeighbour,game);
+			options.sort(Comparator.comparingInt(o -> -o.score));
+			Actions bestAction = Action.chooseBestAction(options,game);
 			Action.displayResourcesForAction(bestAction, game);
-			Action.doAction(bestAction, game,allCells);
+			Action.doAction(bestAction, game,cellNeighbour);
 		}
 	}
 }
