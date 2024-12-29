@@ -13,7 +13,7 @@ class Pos {
 
     @Override
     public boolean equals(Object obj) {
-        return x == ((Pos)obj).x && y == ((Pos)obj).y;
+        return x == ((Pos) obj).x && y == ((Pos) obj).y;
     }
 }
 
@@ -66,7 +66,7 @@ class Cell {
 
     @Override
     public boolean equals(Object obj) {
-        return pos.equals(((Cell)obj).pos);
+        return pos.equals(((Cell) obj).pos);
     }
 }
 
@@ -210,6 +210,57 @@ class Game {
                 }
             }
         }
+    }
+
+    void compareDistanceWithProteins(List<Organ> myOrgans, Game game) {
+        List<Pos> proteinPositions = protPositionOnGrid();
+
+        for (Organ organ : myOrgans) {
+
+
+            for (Pos proteinPos : proteinPositions) {
+                int deltaX = proteinPos.x - organ.pos.x; // Positif : protéine en E, négatif : protéine en W
+                int deltaY = proteinPos.y - organ.pos.y; // Positif : protéine en S, négatif : protéine en N
+                int distance = calculateManhattanDistance(organ.pos.x, organ.pos.y, proteinPos.x, proteinPos.y);
+                String direction = getDirection(deltaX, deltaY);
+
+                System.err.println("Distance from organ " + organ.id + " at position (" + organ.pos.x + ", " + organ.pos.y +
+                        ") to protein A at position (" + proteinPos.x + ", " + proteinPos.y + ") is: " + distance + " Direction : " + direction);
+            }
+        }
+
+    }
+
+
+    int calculateManhattanDistance(int x1, int y1, int x2, int y2) {
+        return Math.abs(x2 - x1) + Math.abs(y2 - y1);
+    }
+    private String getDirection(int deltaX, int deltaY) {
+        if (deltaX == 0 && deltaY == 0) {
+            return "Same position"; // L'organe et la protéine sont au même endroit
+        }
+
+        if (Math.abs(deltaX) > Math.abs(deltaY)) {
+            return deltaX > 0 ? "E" : "W"; // Protéine à droite ou à gauche
+        } else {
+            return deltaY > 0 ? "S" : "N"; // Protéine en bas ou en haut
+        }
+    }
+
+    List<Pos> protPositionOnGrid() {
+        List<Pos> proteinPositions = new ArrayList<>();
+
+        // Parcourir toute la grille pour trouver les protéines
+        for (int y = 0; y < grid.height; y++) {
+            for (int x = 0; x < grid.width; x++) {
+                Cell cell = grid.getCell(x, y);
+                if (cell.protein != null && cell.protein.equals("A")) { // Vérifier si c'est une protéine de type "A"
+                    proteinPositions.add(new Pos(x, y)); // Ajouter la position de la protéine
+                }
+            }
+        }
+
+        return proteinPositions; // Retourner la liste des positions des protéines "A"
     }
 
     // affichage des proteines uniquement sur la zone de jeu de mon Organe (area restreinte)
@@ -520,6 +571,7 @@ class Game {
 
         return availableAction;
     }
+
     //  4 association Actions avec Scores
 //	public Map<Actions, Integer> actionScores() {
 //		Map<Actions, Integer> scores = new HashMap<>();
@@ -535,7 +587,7 @@ class Game {
 //		return scores;
 //	}
     // association Actions avec Ressources
-    public Map<Actions,Map<Resources, Integer>> actionRessources() {
+    public Map<Actions, Map<Resources, Integer>> actionRessources() {
         Map<Actions, Map<Resources, Integer>> spendForAction = new HashMap<>();
         // For GROW (BASIC)
         Map<Resources, Integer> basicResources = new HashMap<>();
@@ -567,7 +619,7 @@ class Game {
         return spendForAction;
     }
 
-    public int computeScoreForAction(Actions action,Cell neighbour) {
+    public int computeScoreForAction(Actions action, Cell neighbour) {
         int score = 0;
 
         if (action == Actions.BASIC) {
@@ -634,6 +686,12 @@ class Action {
         }
     }
 
+
+    // Méthode pour calculer la distance de Manhattan entre deux points
+    int calculateManhattanDistance(int x1, int y1, int x2, int y2) {
+        return Math.abs(x2 - x1) + Math.abs(y2 - y1);
+    }
+
     // 2 : Retourne listes cases dispo (4 directions) autour de mes organes
     static Set<Cell> checkCellAround(List<Organ> myOrgans, Game game) {
         // Cases dispo autour de mes organes
@@ -665,7 +723,7 @@ class Action {
                 // Ajoute toutes les actions disponibles pour cette cellule
                 for (Actions action : Actions.values()) {
                     option.action = action;
-                    option.score = game.computeScoreForAction(action,neighbour);
+                    option.score = game.computeScoreForAction(action, neighbour);
                     options.add(option); // Ajoute l'option à la liste
                 }
 //				System.err.println("Available actions : " + game.availableActions());
@@ -673,11 +731,13 @@ class Action {
         }
         return options;
     }
-    static class Option{
+
+    static class Option {
         Actions action;
         Cell neighbour;
         int score;
     }
+
     // 4 (dans la class game)
     // 5 choisir parmis les actions possibles celle avec le score le plus haut
     static Option chooseBestAction(List<Option> options) {
@@ -714,6 +774,7 @@ class Action {
             System.err.println(entry.getKey() + ": " + entry.getValue());
         }
     }
+
     // 7 Faire l'action
     static String doAction(Option bestOption, Game game) {
         Organ myOrgan = game.myOrgans.get(game.myOrgans.size() - 1);
@@ -824,9 +885,10 @@ class Player {
             //			game.updateProteinPositions();
             //			game.reachProt();
 //            Action.ActionByProtein(myA, myB, myC, myD);
+            game.compareDistanceWithProteins(game.myOrgans, game);
             Action.displayOrgansOnGrid(game.grid);
             Set<Cell> cellNeighbour = Action.checkCellAround(game.myOrgans, game);
-            List<Action.Option> options = Action.computeAvailableActions(cellNeighbour,game);
+            List<Action.Option> options = Action.computeAvailableActions(cellNeighbour, game);
             options.sort(Comparator.comparingInt(o -> -o.score));
             Action.Option bestOption = Action.chooseBestAction(options);
 //            Action.displayResourcesForAction(bestAction, game);
@@ -846,6 +908,7 @@ enum Actions {
 enum CellType {
     WALL, EMPTY, PROTEIN, ORGAN
 }
+
 enum Resources {
-    A,B,C,D
+    A, B, C, D
 }
