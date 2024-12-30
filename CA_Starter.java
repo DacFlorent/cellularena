@@ -337,7 +337,7 @@ class Action {
 	}
 
 	// 3 : définir les actions possibles
-	static List<Option> computeAvailableActions(Set<Cell> neighbours, Game game) {
+	static List<Option> computeAvailableActions(Set<Cell> neighbours, Game game,List<Organ> myOrgans) {
 		List<Option> options = new ArrayList<>();
 		// liste des actions possibles selon les cases dispo
 		for (Cell neighbour : neighbours) {
@@ -346,6 +346,15 @@ class Action {
 				// Crée une nouvelle Option pour chaque cellule voisine
 				Option option = new Option();
 				option.neighbour = neighbour;
+
+				for (Organ organ : myOrgans) {
+					List<Cell> organNeighbours = game.getNeighbours(organ);
+					if (organNeighbours.contains(neighbour)) {
+						option.organId = organ.id; // Enregistrez l'ID de l'organe ici
+						break;
+					}
+				}
+
 				// Ajoute toutes les actions disponibles pour cette cellule
 				for (Actions action : Actions.values()) {
 					option.action = action;
@@ -361,7 +370,7 @@ class Action {
 	static class Option {
 
 		//	TODO:	Organ organ;
-		Organ myOrgan;
+		public int organId;
 		Actions action = Actions.WAIT;
 		Cell neighbour;
 		int score;
@@ -369,12 +378,11 @@ class Action {
 		@Override
 		public String toString() {
 			// écrit l'action pour le system out .println !
-			if (myOrgan != null) {
-			return "GROW " + myOrgan.id + " " + neighbour.pos.x + " " + neighbour.pos.y + " " + action;
+			if (neighbour != null && neighbour.pos != null) {
+				return "GROW " + organId + " " + neighbour.pos.x + " " + neighbour.pos.y + " " + action;
 			} else {
-				return "GROW 1 " + neighbour.pos.x + " " + neighbour.pos.y + " " + action;
+				return "WAIT";
 			}
-
 		}
 	}
 
@@ -547,7 +555,7 @@ class Player {
 			game.compareDistanceWithProteins(game.myOrgans, game);
 			Action.displayOrgansOnGrid(game.grid);
 			Set<Cell> cellNeighbour = Action.checkCellAround(game.myOrgans, game);
-			List<Action.Option> options = Action.computeAvailableActions(cellNeighbour, game);
+			List<Action.Option> options = Action.computeAvailableActions(cellNeighbour, game,game.myOrgans);
 			options.sort(Comparator.comparingInt(o -> -o.score));
 			Action.Option bestOption = Action.chooseBestAction(options, game);
 			//            Action.displayResourcesForAction(bestAction, game);
