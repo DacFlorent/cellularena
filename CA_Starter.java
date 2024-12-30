@@ -233,6 +233,12 @@ class Game {
 				score += 20;
 			}
 
+		}  if (action == Actions.TENTACLE) {
+			if (neighbour.protein == null) {
+				score += 15;
+			} else {
+				score += 20;
+			}
 		}
 		return score;
 	}
@@ -394,12 +400,40 @@ class Action {
 
 		for (Option option : options) {
 			if (option != null && canBuild(option.action, game)) {
+
 				System.err.println("Best action : " + option + " with score: "
 					+ option.score + " at coordinates X: " + option.neighbour.pos.x
 					+ ", Y: " + option.neighbour.pos.y);
 				return option;
 			}
 		}
+		for (Option option : options) {
+			if (option != null && option.action == Actions.BASIC) {
+				// Si l'action BASIC échoue à cause du manque de ressources, essayons HARVESTER
+				// Vérifier si HARVESTER est une option réalisable avec les ressources disponibles
+				option.action = Actions.HARVESTER;  // Changer l'action en HARVESTER
+				if (canBuild(option.action, game)) {
+					System.err.println("Switching to HARVESTER action: " + option + " with score: "
+							+ option.score + " at coordinates X: " + option.neighbour.pos.x
+							+ ", Y: " + option.neighbour.pos.y);
+					return option;
+				}
+			}
+		}
+		for (Option option : options) {
+			if (option != null && option.action == Actions.HARVESTER) {
+				// Si l'action BASIC échoue à cause du manque de ressources, essayons HARVESTER
+				// Vérifier si HARVESTER est une option réalisable avec les ressources disponibles
+				option.action = Actions.TENTACLE;  // Changer l'action en HARVESTER
+				if (canBuild(option.action, game)) {
+					System.err.println("Switching to TENTACLE action: " + option + " with score: "
+							+ option.score + " at coordinates X: " + option.neighbour.pos.x
+							+ ", Y: " + option.neighbour.pos.y);
+					return option;
+				}
+			}
+		}
+
 
 		return WAIT;
 	}
