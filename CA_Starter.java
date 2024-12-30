@@ -106,38 +106,6 @@ class Grid {
 
 	}
 
-	// Affichage de la grille complète  ( toutes les entités )
-//	void displayGrid() {
-//		for (int y = 0; y < height; y++) {
-//			for (int x = 0; x < width; x++) {
-//				Cell cell = cells[x + width * y];
-//				StringBuilder cellInfo = new StringBuilder();
-//
-//				// Pos Cell
-//				cellInfo.append("Cell(").append(x).append(", ").append(y).append("): ");
-//
-//				// check WALL
-//				if (cell.isWall) {
-//					cellInfo.append("WALL ");
-//				}
-//
-//				// Check PROT
-//				if (cell.protein != null) {
-//					cellInfo.append("Protein: ").append(cell.protein).append(" ");
-//				}
-//
-//				// CHECK ORGAN
-//				if (cell.organ != null) {
-//					cellInfo.append("Organ ID: ").append(cell.organ.id)
-//						.append(", Type: ").append(cell.organ.organType)
-//						.append(", Owner: ").append(cell.organ.owner)
-//						.append(", Direction: ").append(cell.organ.dir);
-//				}
-//
-//				System.err.println(cellInfo.toString());
-//			}
-//		}
-//	}
 }
 
 class Game {
@@ -171,49 +139,6 @@ class Game {
 		proteinPositions.clear();
 	}
 
-	// MaJ de la position des proteines
-//	void updateProteinPositions() {
-//		proteinPositions.clear();
-//		for (int y = 0; y < grid.height; y++) {
-//			for (int x = 0; x < grid.width; x++) {
-//				Cell cell = grid.getCell(x, y);
-//				if (cell.protein != null) {
-//					proteinPositions.put(cell.protein, cell.pos);
-//				}
-//			}
-//		}
-//	}
-
-	// Affichage des proteines sur la grille
-//	void displayProteinsOnGrid() {
-//		for (int y = 0; y < grid.height; y++) {
-//			for (int x = 0; x < grid.width; x++) {
-//				Cell cell = grid.getCell(x, y);
-//				if (cell.protein != null) {
-//					System.err.println("Protein " + cell.protein + " is at position " + x + ", " + y);
-//				}
-//			}
-//		}
-//	}
-
-	// Affichage des organes sur la grille
-//	void displayOrgansOnGrid() {
-//		for (int y = 0; y < grid.height; y++) {
-//			for (int x = 0; x < grid.width; x++) {
-//				Cell cell = grid.getCell(x, y);
-//				if (cell.organ != null) {
-//					Organ organ = cell.organ;
-//					//					System.err.println("Organ ID: " + organ.id
-//					//						+ ", Owner: " + organ.owner
-//					//						+ ", Organ Parent ID: " + organ.parentId
-//					//						+ ", Organ Root ID: " + organ.rootId
-//					//						+ ", Type: " + organ.organType
-//					//						+ ", Direction: " + organ.dir
-//					//						+ ", Position: (" + x + ", " + y + ")");
-//				}
-//			}
-//		}
-//	}
 
 	void compareDistanceWithProteins(List<Organ> myOrgans, Game game) {
 		List<Pos> proteinPositions = protPositionOnGrid();
@@ -265,275 +190,6 @@ class Game {
 		return proteinPositions; // Retourner la liste des positions des protéines "A"
 	}
 
-	// affichage des proteines uniquement sur la zone de jeu de mon Organe (area restreinte)
-	//	void displayProteinsInSpecificArea() {
-	//		List<Pos> proteinsInArea = new ArrayList<>();
-	//		// Parcourt les lignes entre Y = 1 et Y = 3 inclusivement
-	//		for (int y = 1; y <= 3; y++) {
-	//			// Parcourt les colonnes entre X = 1 et X = 16 inclusivement
-	//			for (int x = 1; x <= 16; x++) {
-	//				Cell cell = grid.getCell(x, y);
-	//				if (cell != null && cell.protein != null) {
-	//					proteinsInArea.add(cell.pos);
-	//					System.err.println("(Specific AREA) Protein " + cell.protein + " is at position " + x + ", " + y);
-	//				}
-	//			}
-	//		}
-	//	}
-
-//	Pos findClosestProteinInArea(Organ organ) {
-//		List<Pos> proteinsInArea = getProteinsInSpecificArea();
-//		Pos closestProteinPos = null;
-//		int minDistance = Integer.MAX_VALUE;
-//
-//		for (Pos proteinPos : proteinsInArea) {
-//			// Calculer la distance de Manhattan entre l'organe et la protéine
-//			int deltaX = Math.abs(proteinPos.x - organ.pos.x);
-//			int deltaY = Math.abs(proteinPos.y - organ.pos.y);
-//			int distance = deltaX + deltaY;  // Distance de Manhattan
-//
-//			// Si la protéine est plus proche, mettre à jour la protéine la plus proche
-//			if (distance < minDistance) {
-//				minDistance = distance;
-//				closestProteinPos = proteinPos;
-//			}
-//		}
-//
-//		return closestProteinPos;
-//	}
-
-	// Recherche autour de mon organe
-//	List<CellType> checkCellAround(Pos pos, int radius) {
-//		List<CellType> cellTypes = new ArrayList<>();
-//		// Parcourt les cellules autour de la position dans le rayon donné
-//		for (int x = pos.x - radius; x <= pos.x + radius; x++) {
-//			for (int y = pos.y - radius; y <= pos.y + radius; y++) {
-//				// Manhattan pour extraire les diagonales
-//				if (Math.abs(pos.x - x) + Math.abs(pos.y - y) == radius) {
-//					// Récupérer la cellule correspondante
-//					Cell cell = grid.getCell(x, y);
-//
-//					// Déterminer le type de la cellule et l'ajouter à la liste
-//					//                if (cell != null) {
-//					//                    if (cell.protein != null) {
-//					//                        cellTypes.add(CellType.PROTEIN);
-//					//                    } else if (cell.organ != null) {
-//					//                        cellTypes.add(CellType.ORGAN);
-//					//                    } else {
-//					//                        cellTypes.add(CellType.EMPTY);
-//					//                    }
-//					//
-//					//                    // Affichage pour déboguer
-//					//                    System.err.println("Cellule à (" + x + ", " + y + ") : " + (cell.protein != null ? "PROTEIN" : (cell.organ != null ? "ORGAN" : "EMPTY")));
-//					//                }
-//					if (cell != null && cell.organ != null && cell.organ.owner == 0) {
-//						cellTypes.add(CellType.ORGAN);
-//
-//						// Affichage uniquement si la cellule contient un organe avec ownerId = 0
-//						System.err.println("Cellule à (" + x + ", " + y + ") : ORGAN avec ownerId = 0");
-//					}
-//				}
-//			}
-//		}
-//
-//		// Retourner la liste des types de cellules trouvés
-//		return cellTypes;
-//	}
-//
-//	List<Pos> getProteinsInSpecificArea() {
-//		List<Pos> proteinsInArea = new ArrayList<>();
-//
-//		// Parcourt les lignes entre Y = 1 et Y = 3 inclusivement
-//		for (int y = 1; y <= 3; y++) {
-//			// Parcourt les colonnes entre X = 1 et X = 16 inclusivement
-//			for (int x = 1; x <= 16; x++) {
-//				Cell cell = grid.getCell(x, y);
-//				if (cell != null && cell.protein != null) {
-//					proteinsInArea.add(cell.pos); // Ajout de la position de la protéine
-//				}
-//			}
-//		}
-//		return proteinsInArea;
-//	}
-//
-//	static boolean hasSporer = false;
-//	static boolean hasSpore = false;
-//
-//	// Rejoindre la position de la proteine la plus proche
-//	void reachProt() {
-//		if (!myOrgans.isEmpty()) {
-//			// Récupérez le dernier organe de la liste
-//			Organ lastOrgan = myOrgans.get(myOrgans.size() - 1);
-//			System.err.println("lastOrgan ID : " + lastOrgan.id);
-//			Organ organ = myOrgans.get(0);
-//			System.err.println("Organ ID : " + organ.id);
-//
-//			Pos closestProteinPos = findClosestProteinInArea(lastOrgan);
-//			String direction = "";
-//			String actionType;
-//
-//			grid.width = 16;
-//			grid.height = 7;
-//
-//			if (closestProteinPos != null) {
-//
-//				int deltaX = closestProteinPos.x - lastOrgan.pos.x;
-//				int deltaY = closestProteinPos.y - lastOrgan.pos.y;
-//
-//				if (deltaY > 0) {
-//					direction = "S"; // Sud
-//				} else if (deltaY < 0) {
-//					direction = "N"; // Nord
-//				} else if (deltaX > 0) {
-//					direction = "E"; // Est
-//				}
-//
-//				// affichage du delta Y :
-//				System.err.println("delta Y : " + deltaY);
-//				// affichage du delta X :
-//				System.err.println("delta X : " + deltaX);
-//				// si delta X = 2, HARVESTER, sinon BASIC
-//
-//				if (deltaX != 0 && deltaY != 0) {
-//					// Gestion des diagonales
-//					if (deltaX == 1) {
-//						actionType = "GROW " + lastOrgan.id + " " + closestProteinPos.x + " " + closestProteinPos.y + " " + "HARVESTER " + direction;
-//						System.out.println(actionType);
-//
-//						int numActions = 3;
-//						// Appeler la méthode de mouvement HARVESTER et sortir pendant 3 tours
-//						for (int i = 0; i < numActions; i++) {
-//							reachNextProt(i); // Passer l'itération pour personnaliser l'action
-//						}
-//					} else if (deltaX > 2) {
-//						putSporer(organ, lastOrgan, deltaY, closestProteinPos, direction, organ.pos);
-//						hasSporer = true;
-//						if (hasSporer == true) {
-//							shootSpore(closestProteinPos, direction);
-//							hasSpore = true;
-//							if (hasSpore == true) {
-//								actionType = "GROW 5 " + closestProteinPos.x + " " + closestProteinPos.y + " " + "HARVESTER E";
-//								System.out.println(actionType);
-//							}
-//						}
-//					} else {
-//						// Si c'est une diagonale avec une plus grande distance, on peut attendre ou gérer autrement
-//						actionType = "GROW " + lastOrgan.id + " " + closestProteinPos.x + " " + closestProteinPos.y + " " + "BASIC " + direction;
-//						System.out.println(actionType);
-//					}
-//				} else {
-//					if (deltaX == 2) {
-//						actionType = "GROW " + lastOrgan.id + " " + closestProteinPos.x + " " + closestProteinPos.y + " " + "HARVESTER " + direction;
-//						System.out.println(actionType);
-//						// sortir 3 tours
-//						int numActions = 3;
-//						for (int i = 0; i < numActions; i++) {
-//							reachNextProt(i); // Passer l'itération pour personnaliser l'action
-//						}
-//					} else {
-//						if (deltaX > 2) {
-//							putSporer(organ, lastOrgan, deltaY, closestProteinPos, direction, organ.pos);
-//							hasSporer = true;
-//							if (hasSporer == true) {
-//								shootSpore(closestProteinPos, direction);
-//								hasSpore = true;
-//								if (hasSpore == true) {
-//									actionType = "GROW 5 " + closestProteinPos.x + " " + closestProteinPos.y + " " + "HARVESTER E";
-//									System.out.println(actionType);
-//								}
-//							}
-//						}
-//					}
-//				}
-//			} else {
-//				// Aucune protéine trouvée : TENTACLE ATTAQUE APRES HARVESTER
-//				List<CellType> cellTypes = checkCellAround(lastOrgan.pos, 2);  // Rayon de 2
-//
-//				// Affichage de ce qui a été trouvé
-//				System.err.println("Cellules trouvées autour de la position : " + cellTypes);
-//
-//				if (cellTypes.contains(CellType.ORGAN)) {
-//					actionType = "GROW " + lastOrgan.id + " 16 5 TENTACLE " + direction;
-//					System.out.println(actionType);
-//					int numActions = 3; // Nombre d'actions à exécuter
-//					for (int i = 0; i < numActions; i++) {
-//						afterTentacle(i); // Passer l'itération pour personnaliser l'action
-//					}
-//
-//				} else {
-//					String actionType1 = "GROW " + organ.id + " " + "14 3 BASIC " + direction;
-//					String actionType2 = "GROW " + lastOrgan.id + " " + "14 3 BASIC " + direction;
-//
-//					System.out.println(actionType1);
-//					System.out.println(actionType2);
-//
-//				}
-//			}
-//		} else {
-//			String actionType = "WAIT";
-//			System.out.println(actionType);
-//		}
-//	}
-//
-//	void reachNextProt(int iteration) {
-//		// faire un mouvement depuis le root Organ vers une position infinie entre " "
-//		String direction = "N";
-//
-//		String actionType = "GROW 1 11 5 BASIC";
-//		System.out.println(actionType);
-//	}
-//
-//	void afterTentacle(int iteration) {
-//		// continué la croissance apres TENTACLE
-//		String direction = "S";
-//
-//		String actionType = "GROW 1 11 5 BASIC " + direction;
-//		System.out.println(actionType);
-//	}
-//
-//	void putSporer(Organ organ, Organ lastOrgan, int deltaY, Pos closestProteinPos, String direction, Pos pos) {
-//		direction = "E";
-//		int sporeX = pos.x;
-//		System.err.println("sporeX : " + sporeX);
-//		int sporeY = pos.y;
-//		System.err.println("spore Y : " + sporeY);
-//
-//		if (deltaY < 0) {
-//			sporeX = 1;
-//			sporeY = 1;
-//		} else if (deltaY > 0) {
-//			sporeX = 1;
-//			sporeY = 3;
-//		} else {
-//			sporeX = 2;
-//			sporeY = 2;
-//		}
-//		String actionType = "GROW " + organ.id + " " + sporeX + " " + sporeY + " " + "SPORER " + direction;
-//		System.out.println(actionType);
-//
-//		//		String actionSpore = "SPORE 3 " + closestProteinPos.x + " " + closestProteinPos.y + " ";
-//		//		System.out.println(actionSpore);
-//
-//		//		String actionType1 = "GROW " + organ.id + " " + "9 3 BASIC " + direction;
-//		//		String actionType2 = "GROW " + lastOrgan.id + " " + "9 3 BASIC " + direction;
-//		//
-//		//		String actionType9 = "GROW " + lastOrgan.id + " " +  "16 3 HARVESTER";
-//		//		String actionType10 = "WAIT";
-//		//
-//		//		System.out.println(actionType1);
-//		//		System.out.println(actionType2);
-//		//		System.out.println(actionType9);
-//		//		System.out.println(actionType10);
-//	}
-//
-//	void shootSpore(Pos closestProteinPos, String direction) {
-//		direction = "E";
-//		int shootX = (closestProteinPos.x - 2);
-//		int shootY = closestProteinPos.y;
-//
-//		String actionSpore = "SPORE 3 " + shootX + " " + shootY + " " + direction;
-//		System.out.println(actionSpore);
-//	}
 
 	// Récuperation des cellules autour de mon organe
 	public List<Cell> getNeighbours(Organ organ) {
@@ -560,35 +216,6 @@ class Game {
 		return resultNeighbours;
 	}
 
-	// Liste des actions possibles
-//	public List<Actions> availableActions() {
-//		// Création de la liste des actions
-//		List<Actions> availableAction = new ArrayList<>();
-//		// Ajout dans la liste des actions possibles
-//		availableAction.add(Actions.BASIC);
-//		availableAction.add(Actions.SPORER);
-//		availableAction.add(Actions.TENTACLE);
-//		availableAction.add(Actions.WAIT);
-//
-//		return availableAction;
-//	}
-
-	//  4 association Actions avec Scores
-	//	public Map<Actions, Integer> actionScores() {
-	//		Map<Actions, Integer> scores = new HashMap<>();
-	//		scores.put(Actions.BASIC, 30);      // Score pour BASIC
-	//		scores.put(Actions.SPORER, 20);   // Score pour SPORER
-	//		scores.put(Actions.TENTACLE, 10); // Score pour TENTACLE
-	//		scores.put(Actions.WAIT, 0);      // Score pour WAIT
-
-	/// /		System.err.println("score Grow : " + scores.get(Actions.GROW));
-	/// /		System.err.println("score Sporer : " + scores.get(Actions.SPORER));
-	/// /		System.err.println("score Tentacle : " + scores.get(Actions.TENTACLE));
-	/// /		System.err.println("score Wait : " + scores.get(Actions.WAIT));
-	//
-	//		return scores;
-	//	}
-	// association Actions avec Ressources
 
 	public int computeScoreForAction(Actions action, Cell neighbour) {
 		int score = 0;
@@ -758,7 +385,7 @@ class Action {
 	static Option chooseBestAction(List<Option> options,Game game) {
 
 		for (Option option : options) {
-			if (canBuild(option.action, game)) {
+			if (option != null && canBuild(option.action, game)) {
 				System.err.println("Best action : " + option + " with score: "
 					+ option.score + " at coordinates X: " + option.neighbour.pos.x
 					+ ", Y: " + option.neighbour.pos.y);
@@ -778,6 +405,11 @@ class Action {
 		for (Map.Entry<Resources, Integer> entry : requiredResources.entrySet()) {
 			Resources resource = entry.getKey();
 			int requiredAmount = entry.getValue();
+
+            if (game.myProteins.getOrDefault(resource.toString(), 0) < requiredAmount) {
+                // Pas assez de ressources pour cette action
+                return false;
+            }
 
 			if (requiredAmount == 0) {
 				continue;
