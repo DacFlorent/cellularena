@@ -433,6 +433,19 @@ class Action {
 				}
 			}
 		}
+		for (Option option : options) {
+			if (option != null && option.action == Actions.TENTACLE) {
+				// Si l'action BASIC échoue à cause du manque de ressources, essayons HARVESTER
+				// Vérifier si HARVESTER est une option réalisable avec les ressources disponibles
+				option.action = Actions.SPORER;  // Changer l'action en HARVESTER
+				if (canBuild(option.action, game)) {
+					System.err.println("Switching to TENTACLE action: " + option + " with score: "
+							+ option.score + " at coordinates X: " + option.neighbour.pos.x
+							+ ", Y: " + option.neighbour.pos.y);
+					return option;
+				}
+			}
+		}
 
 
 		return WAIT;
