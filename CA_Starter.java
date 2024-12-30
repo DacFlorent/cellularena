@@ -599,8 +599,13 @@ class Game {
 			} else {
 				score += 20; // Si la cellule a une protéine
 			}
-			//        } if (action == Actions.TENTACLE) {
-			//
+		} if (action == Actions.HARVESTER) {
+			if (neighbour.protein == null) {
+				score += 10; //
+			} else {
+				score += 20;
+			}
+
 		}
 		return score;
 	}
@@ -729,14 +734,20 @@ class Action {
 	static class Option {
 
 		//	TODO:	Organ organ;
+		Organ myOrgan;
 		Actions action = Actions.WAIT;
 		Cell neighbour;
 		int score;
 
 		@Override
 		public String toString() {
-			// écrit l'action pour le system out .println
-			return super.toString();
+			// écrit l'action pour le system out .println !
+			if (myOrgan != null) {
+			return "GROW " + myOrgan.id + " " + neighbour.pos.x + " " + neighbour.pos.y + " " + action;
+			} else {
+				return "GROW 1 " + neighbour.pos.x + " " + neighbour.pos.y + " " + action;
+			}
+
 		}
 	}
 
@@ -759,7 +770,7 @@ class Action {
 	}
 
 	private static boolean canBuild(Actions action, Game game) {
-		// je dois vérifier que j'ai suffisemment de proteine pour construire l'extension
+		// je dois vérifier que j'ai suffisamment de protéine pour construire l'extension
 		Map<Resources, Integer> requiredResources = actionRessources().get(action);
 		Map<String, Integer> availableResources = game.getMyProteins();
 
@@ -767,6 +778,7 @@ class Action {
 		for (Map.Entry<Resources, Integer> entry : requiredResources.entrySet()) {
 			Resources resource = entry.getKey();
 			int requiredAmount = entry.getValue();
+
 			if (requiredAmount == 0) {
 				continue;
 			}
@@ -777,6 +789,8 @@ class Action {
 
 			// Vérifier la quantité disponible
 			int availableAmount = availableResources.get(resourceKey);
+
+
 			System.err.println("Quantité disponible de " + resource.name() + " : " + availableAmount);
 
 			// Si la quantité disponible est inférieure à la quantité requise, retourner false
@@ -803,27 +817,8 @@ class Action {
 	}
 
 	// 7 Faire l'action
-	static String doAction(Option bestOption, Game game) {
-//		System.out.println(bestOption.toString());
-		Organ myOrgan = game.myOrgans.get(game.myOrgans.size() - 1);
-		// Récupérer la meilleure option pour déplacement
-		Cell selectedNeighbour = bestOption.neighbour;
-
-		// Faire l'action
-		String doAction = String.format(
-			"%s %d %d %d %s",
-			"GROW",                        // GROW
-			myOrgan.id,                     // L'ID de l'organe
-			selectedNeighbour.pos.x,        // La position X du voisin
-			selectedNeighbour.pos.y,        // La position Y du voisin
-			bestOption.action               // La meilleure action
-		);
-
-		// Afficher et retourner l'action
-		System.err.println("id organ : " + myOrgan.id);
-		System.err.println(doAction);
-		System.out.println(doAction);
-		return doAction;
+	static void doAction(Option bestOption) {
+		System.out.println(bestOption.toString());
 	}
 
 	// 8 Chosir la protein pour le sporer :
@@ -924,7 +919,7 @@ class Player {
 			options.sort(Comparator.comparingInt(o -> -o.score));
 			Action.Option bestOption = Action.chooseBestAction(options, game);
 			//            Action.displayResourcesForAction(bestAction, game);
-			Action.doAction(bestOption, game);
+			Action.doAction(bestOption);
 		}
 	}
 }
