@@ -734,7 +734,7 @@ class Action {
 	static class Option {
 
 		//	TODO:	Organ organ;
-		Organ myOrgans;
+		Organ myOrgan;
 		Actions action = Actions.WAIT;
 		Cell neighbour;
 		int score;
@@ -742,8 +742,8 @@ class Action {
 		@Override
 		public String toString() {
 			// écrit l'action pour le system out .println !
-			if (myOrgans != null) {
-			return "GROW " + myOrgans.id + " " + neighbour.pos.x + " " + neighbour.pos.y + " " + action;
+			if (myOrgan != null) {
+			return "GROW " + myOrgan.id + " " + neighbour.pos.x + " " + neighbour.pos.y + " " + action;
 			} else {
 				return "GROW 1 " + neighbour.pos.x + " " + neighbour.pos.y + " " + action;
 			}
