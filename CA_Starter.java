@@ -266,10 +266,13 @@ class Game {
 		// WHILE
 		List<Integer> rootIdProcessed = new ArrayList<>();
 		int count = 0;
+
 		while (count < requiredActionsCount) {
-			Option bestOption = action.chooseBestAction(options, rootIdProcessed); // Set après options
+			System.err.println("Nb actions par tour : " + requiredActionsCount);
+			Option bestOption = action.chooseBestAction(options, rootIdProcessed);
 			action.doAction(bestOption);
-			rootIdProcessed.add(myOrgans.get(bestOption.organId).rootId);
+
+			rootIdProcessed.add(organMap.get(bestOption.organId).rootId);
 		}
 
 		// gérer multi base :
@@ -290,13 +293,13 @@ class Game {
 				if (cell.organ != null) {
 					Organ organ = cell.organ;
 					if (organ.owner == 1) {
-						//						System.err.println("Organ ID: " + organ.id
-						//							+ ", Owner: " + organ.owner
-						//							+ ", Organ Parent ID: " + organ.parentId
-						//							+ ", Organ Root ID: " + organ.rootId
-						//							+ ", Type: " + organ.organType
-						//							+ ", Direction: " + organ.dir
-						//							+ ", Position: (" + x + ", " + y + ")");
+//												System.err.println("Organ ID: " + organ.id
+//													+ ", Owner: " + organ.owner
+//													+ ", Organ Parent ID: " + organ.parentId
+//													+ ", Organ Root ID: " + organ.rootId
+//													+ ", Type: " + organ.organType
+//													+ ", Direction: " + organ.dir
+//													+ ", Position: (" + x + ", " + y + ")");
 					}
 				}
 			}
@@ -437,12 +440,13 @@ class Action {
 	// 4 (dans la class game)
 	// 5 choisir parmis les actions possibles celle avec le score le plus haut
 	Option chooseBestAction(List<Option> options, List<Integer> rootIdProcessed) {
-		//		System.err.println(options);
-
 		for (Option option : options) {
-			//			System.err.println("choose "  + option);
+			System.err.println(game.organMap.get(option.organId).rootId);
+			System.err.println(option.organId);
+			System.err.println(rootIdProcessed);
+			//	System.err.println("choose "  + option);
 			if (option != null
-				&& !rootIdProcessed.contains(game.myOrgans.get(option.organId).rootId)
+				&& !rootIdProcessed.contains(game.organMap.get(option.organId).rootId)
 				&& canBuild(option.action, game)) {
 				//				System.err.println(options);
 				//				System.err.println(option.action);
@@ -468,7 +472,7 @@ class Action {
 		//		System.err.println("After retrieving: " + availableResources);
 		if (requiredResources == null) {
 			System.err.println("Aucune ressources restante");
-			return false; // Pas de ressources, impossible de construire
+			return false;
 		}
 		// Parcourir les ressources nécessaires pour l'action
 		for (Map.Entry<Resources, Integer> entry : requiredResources.entrySet()) {
@@ -573,14 +577,6 @@ class Player {
 			game.oppProteins.put(D, oppD);
 
 			int requiredActionsCount = in.nextInt(); // your number of organisms, output an action for each one in any order
-
-			int numberOfActions = 0;
-			for (Organ organ : game.myOrgans) {
-				if (organ.organType.equals("ROOT")) {
-					numberOfActions++;
-				}
-			}
-			System.err.println("Actions count : " + numberOfActions);
 
 			for (int i = 0; i < requiredActionsCount; i++) {
 				// Write an action using System.out.println()
