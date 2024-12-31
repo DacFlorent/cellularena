@@ -242,9 +242,45 @@ class Game {
 		}
 		return score;
 	}
+
+	public void play() {
+		Action action = new Action(this);
+		Set<Cell> cellNeighbour = action.checkCellAround();
+		List<Action.Option> options = action.computeAvailableActions(cellNeighbour);
+		options.sort(Comparator.comparingInt(o -> -o.score));
+		Action.Option bestOption = action.chooseBestAction(options);
+		action.doAction(bestOption);
+	}
+
+	// 1 : Affichage de mes organes (owner = 1)
+	void displayOrgansOnGrid() {
+		for (int y = 0; y < grid.height; y++) {
+			for (int x = 0; x < grid.width; x++) {
+				Cell cell = grid.getCell(x, y);
+				if (cell.organ != null) {
+					Organ organ = cell.organ;
+					if (organ.owner == 1) {
+						//						System.err.println("Organ ID: " + organ.id
+						//							+ ", Owner: " + organ.owner
+						//							+ ", Organ Parent ID: " + organ.parentId
+						//							+ ", Organ Root ID: " + organ.rootId
+						//							+ ", Type: " + organ.organType
+						//							+ ", Direction: " + organ.dir
+						//							+ ", Position: (" + x + ", " + y + ")");
+					}
+				}
+			}
+		}
+	}
 }
 
 class Action {
+
+	private final Game game;
+
+	Action(Game game) {
+		this.game = game;
+	}
 
 	// BASIC = Prot A
 	// HARVESTER = Prot C + D
@@ -253,7 +289,7 @@ class Action {
 	// ROOT = A + B + C + D
 
 
-	public static Map<Actions, Map<Resources, Integer>> actionRessources() {
+	static Map<Actions, Map<Resources, Integer>> actionRessources() {
 		Map<Actions, Map<Resources, Integer>> spendForAction = new HashMap<>();
 		// For GROW (BASIC)
 		Map<Resources, Integer> basicResources = new HashMap<>();
@@ -298,26 +334,7 @@ class Action {
 	// - Shoot la spore en n-2 de la protein
 	// - Cree un HARVESTER avec la bonne direction
 
-	// 1 : Affichage de mes organes (owner = 1)
-	static void displayOrgansOnGrid(Grid grid) {
-		for (int y = 0; y < grid.height; y++) {
-			for (int x = 0; x < grid.width; x++) {
-				Cell cell = grid.getCell(x, y);
-				if (cell.organ != null) {
-					Organ organ = cell.organ;
-					if (organ.owner == 1) {
-//						System.err.println("Organ ID: " + organ.id
-//							+ ", Owner: " + organ.owner
-//							+ ", Organ Parent ID: " + organ.parentId
-//							+ ", Organ Root ID: " + organ.rootId
-//							+ ", Type: " + organ.organType
-//							+ ", Direction: " + organ.dir
-//							+ ", Position: (" + x + ", " + y + ")");
-					}
-				}
-			}
-		}
-	}
+
 
 	// Méthode pour calculer la distance de Manhattan entre deux points
 	int calculateManhattanDistance(int x1, int y1, int x2, int y2) {
@@ -325,11 +342,11 @@ class Action {
 	}
 
 	// 2 : Retourne listes cases dispo (4 directions) autour de mes organes
-	static Set<Cell> checkCellAround(List<Organ> myOrgans, Game game) {
+	Set<Cell> checkCellAround() {
 		// Cases dispo autour de mes organes
 		Set<Cell> cells = new HashSet<>();
 
-		for (Organ organ : myOrgans) {
+		for (Organ organ : game.myOrgans) {
 //			System.err.println("Checking organ ID: " + organ.id); // Traçabilité
 			List<Cell> neighbours = game.getNeighbours(organ);
 			for (Cell neighbour : neighbours) {
@@ -343,7 +360,7 @@ class Action {
 	}
 
 	// 3 : définir les actions possibles
-	static List<Option> computeAvailableActions(Set<Cell> neighbours, Game game,List<Organ> myOrgans) {
+	List<Option> computeAvailableActions(Set<Cell> neighbours) {
 		List<Option> options = new ArrayList<>();
 		// liste des actions possibles selon les cases dispo
 		for (Cell neighbour : neighbours) {
@@ -353,7 +370,7 @@ class Action {
 				Option option = new Option();
 				option.neighbour = neighbour;
 
-				for (Organ organ : myOrgans) {
+				for (Organ organ : game.myOrgans) {
 					List<Cell> organNeighbours = game.getNeighbours(organ);
 					if (organNeighbours.contains(neighbour)) {
 						option.organId = organ.id; // Enregistrez l'ID de l'organe ici
@@ -396,7 +413,7 @@ class Action {
 
 	// 4 (dans la class game)
 	// 5 choisir parmis les actions possibles celle avec le score le plus haut
-	static Option chooseBestAction(List<Option> options,Game game) {
+	Option chooseBestAction(List<Option> options) {
 
 		for (Option option : options) {
 			if (option != null && canBuild(option.action, game)) {
@@ -451,7 +468,7 @@ class Action {
 		return WAIT;
 	}
 
-	private static boolean canBuild(Actions action, Game game) {
+	private boolean canBuild(Actions action, Game game) {
 		// je dois vérifier que j'ai suffisamment de protéine pour construire l'extension
 		Map<Resources, Integer> requiredResources = actionRessources().get(action);
 		Map<String, Integer> availableResources = game.getMyProteins();
@@ -504,7 +521,7 @@ class Action {
 	}
 
 	// 7 Faire l'action
-	static void doAction(Option bestOption) {
+	void doAction(Option bestOption) {
 		System.out.println(bestOption.toString());
 	}
 
@@ -600,13 +617,9 @@ class Player {
 			//			game.reachProt();
 			//            Action.ActionByProtein(myA, myB, myC, myD);
 			game.compareDistanceWithProteins(game.myOrgans, game);
-			Action.displayOrgansOnGrid(game.grid);
-			Set<Cell> cellNeighbour = Action.checkCellAround(game.myOrgans, game);
-			List<Action.Option> options = Action.computeAvailableActions(cellNeighbour, game,game.myOrgans);
-			options.sort(Comparator.comparingInt(o -> -o.score));
-			Action.Option bestOption = Action.chooseBestAction(options, game);
-			//            Action.displayResourcesForAction(bestAction, game);
-			Action.doAction(bestOption);
+			game.displayOrgansOnGrid();
+			game.play();
+
 		}
 	}
 }
