@@ -226,6 +226,10 @@ class Game {
 			}
 		}
 		if (action == Actions.HARVESTER) {
+			// TODO : pour chaque direction
+			// -> récupère la cellule de la direction
+			// si protein...
+
 			if (neighbour.protein == null) {
 				score += 10; //
 			} else {
@@ -241,6 +245,9 @@ class Game {
 			}
 		}
 		if (action == Actions.SPORER) {
+
+			// IDEM TODO: score sporer = MAX(score ROOT) sur la ligne de mire
+			//
 			if (neighbour.protein == null) {
 				score += 20;
 			} else {
@@ -250,15 +257,20 @@ class Game {
 		return score;
 	}
 
-	public void play() {
+	public void play(int requiredActionsCount) {
 		Action action = new Action(this);
 		Set<Cell> cellNeighbour = action.checkCellAround();
-		List<Action.Option> options = action.computeAvailableActions(cellNeighbour);
+		List<Option> options = action.computeAvailableActions(cellNeighbour);
 		options.sort(Comparator.comparingInt(o -> -o.score));
 
 		// WHILE
-		Action.Option bestOption = action.chooseBestAction(options); // Set après options
-		action.doAction(bestOption);
+		List<Integer> rootIdProcessed = new ArrayList<>();
+		int count = 0;
+		while (count < requiredActionsCount) {
+			Option bestOption = action.chooseBestAction(options, rootIdProcessed); // Set après options
+			action.doAction(bestOption);
+			rootIdProcessed.add(myOrgans.get(bestOption.organId).rootId);
+		}
 
 		// gérer multi base :
 		// player.numberOfAction, pareil que ton nb de root
@@ -393,13 +405,14 @@ class Action {
 							option.organId = organ.id;
 							option.action = action;
 							option.score = game.computeScoreForAction(action, neighbour);
-
 							options.add(option);
 
+							options.addAll(action.computeOptions(game, neighbour));
+
 							// Pour le debug : affichage des détails de l'option
-//							System.err.println(option);
-//							System.err.println(option.score);
-//							System.err.println(option.action);
+							//							System.err.println(option);
+							//							System.err.println(option.score);
+							//							System.err.println(option.action);
 						}
 						break;
 					}
@@ -407,39 +420,30 @@ class Action {
 				//				System.err.println("Available actions : " + game.availableActions());
 			}
 		}
-//		System.err.println(options);
+
+		// TODO : score ROOT à partir de sporer
+		// si j'ai des sporer : alors je calcule pour chacune des cases de la ligne de mire
+		// le score d'aparition d'un root :
+		// B-R-S-> - - -
+		// génère 3 options (3 root possible)
+		//		System.err.println(options);
 		return options;
 	}
 
-	static class Option {
 
-		//	TODO:	Organ organ;
-		public int organId;
-		Actions action = Actions.WAIT;
-		Cell neighbour;
-		int score;
-
-		@Override
-		public String toString() {
-			// écrit l'action pour le system out .println !
-			if (neighbour != null && neighbour.pos != null) {
-				return "GROW " + organId + " " + neighbour.pos.x + " " + neighbour.pos.y + " " + action;
-			} else {
-				return "WAIT";
-			}
-		}
-	}
 
 	private static final Option WAIT = new Option();
 
 	// 4 (dans la class game)
 	// 5 choisir parmis les actions possibles celle avec le score le plus haut
-	Option chooseBestAction(List<Option> options) {
+	Option chooseBestAction(List<Option> options, List<Integer> rootIdProcessed) {
 		//		System.err.println(options);
 
 		for (Option option : options) {
-//			System.err.println("choose "  + option);
-			if (option != null && canBuild(option.action, game)) {
+			//			System.err.println("choose "  + option);
+			if (option != null
+				&& !rootIdProcessed.contains(game.myOrgans.get(option.organId).rootId)
+				&& canBuild(option.action, game)) {
 				//				System.err.println(options);
 				//				System.err.println(option.action);
 				System.err.println("Best action : " + option + " with score: "
@@ -455,13 +459,13 @@ class Action {
 	private boolean canBuild(Actions action, Game game) {
 		// Récupérer les ressources nécessaires pour l'action
 		Map<Resources, Integer> requiredResources = actionRessources().get(action);
-//		requiredResources
-//			.forEach((r,v) -> System.err.println(action + "required  " + r + " v " + v));
-//		Map<String, Integer> availableResources = game.getMyProteins();
-//		availableResources
-//			.forEach((r,v) -> System.err.println("available  " + r + " v " + v));
-//		System.err.println("myprot" + game.getMyProteins());
-//		System.err.println("After retrieving: " + availableResources);
+		//		requiredResources
+		//			.forEach((r,v) -> System.err.println(action + "required  " + r + " v " + v));
+		//		Map<String, Integer> availableResources = game.getMyProteins();
+		//		availableResources
+		//			.forEach((r,v) -> System.err.println("available  " + r + " v " + v));
+		//		System.err.println("myprot" + game.getMyProteins());
+		//		System.err.println("After retrieving: " + availableResources);
 		if (requiredResources == null) {
 			System.err.println("Aucune ressources restante");
 			return false; // Pas de ressources, impossible de construire
@@ -476,8 +480,8 @@ class Action {
 
 			// Si la quantité disponible est inférieure à la quantité requise, l'action échoue
 			if (availableAmount < requiredAmount) {
-//				System.err.println("Pas assez de ressources pour " + resource.name() + ". Disponible: "
-//					+ availableAmount + ", Nécessaire: " + requiredAmount);
+				//				System.err.println("Pas assez de ressources pour " + resource.name() + ". Disponible: "
+				//					+ availableAmount + ", Nécessaire: " + requiredAmount);
 				return false;  // Pas assez de ressources
 			}
 		}
@@ -591,8 +595,7 @@ class Player {
 			//            Action.ActionByProtein(myA, myB, myC, myD);
 			game.compareDistanceWithProteins(game.myOrgans, game);
 			game.displayOrgansOnGrid();
-			game.play();
-//			game.play(requiredActionsCount);
+			game.play(requiredActionsCount);
 
 		}
 	}
@@ -603,7 +606,40 @@ enum Direction {
 }
 
 enum Actions {
-	ROOT, WAIT, TENTACLE, SPORER, HARVESTER, BASIC;
+	WAIT {
+		@Override
+		public List<Option> computeOptions(Game game, Cell neighbour) {
+			return Collections.emptyList();
+		}
+	}, ROOT {
+		@Override
+		public List<Option> computeOptions(Game game, Cell neighbour) {
+			return Collections.emptyList();
+		}
+	}, TENTACLE {
+		@Override
+		public List<Option> computeOptions(Game game, Cell neighbour) {
+			return Collections.emptyList();
+		}
+	}, SPORER {
+		@Override
+		public List<Option> computeOptions(Game game, Cell neighbour) {
+			return Collections.emptyList();
+		}
+	}, HARVESTER {
+		@Override
+		public List<Option> computeOptions(Game game, Cell neighbour) {
+			return Collections.emptyList();
+		}
+	},
+	BASIC {
+		@Override
+		public List<Option> computeOptions(Game game, Cell neighbour) {
+			return Collections.emptyList();
+		}
+	};
+
+	public abstract List<Option> computeOptions(Game game, Cell neighbour);
 }
 
 enum CellType {
@@ -612,4 +648,23 @@ enum CellType {
 
 enum Resources {
 	A, B, C, D
+}
+
+class Option {
+
+	//	TODO:	Organ organ;
+	public int organId;
+	Actions action = Actions.WAIT;
+	Cell neighbour;
+	int score;
+
+	@Override
+	public String toString() {
+		// écrit l'action pour le system out .println !
+		if (neighbour != null && neighbour.pos != null) {
+			return "GROW " + organId + " " + neighbour.pos.x + " " + neighbour.pos.y + " " + action;
+		} else {
+			return "WAIT";
+		}
+	}
 }
