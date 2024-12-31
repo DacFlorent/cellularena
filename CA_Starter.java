@@ -127,6 +127,7 @@ class Game {
 		organMap = new HashMap<>();
 		proteinPositions = new HashMap<>();
 	}
+
 	public Map<String, Integer> getMyProteins() {
 		return myProteins;
 	}
@@ -139,7 +140,6 @@ class Game {
 		proteinPositions.clear();
 	}
 
-
 	void compareDistanceWithProteins(List<Organ> myOrgans, Game game) {
 		List<Pos> proteinPositions = protPositionOnGrid();
 
@@ -151,8 +151,8 @@ class Game {
 				int distance = calculateManhattanDistance(organ.pos.x, organ.pos.y, proteinPos.x, proteinPos.y);
 				String direction = getDirection(deltaX, deltaY);
 
-//				System.err.println("Distance from organ " + organ.id + " at position (" + organ.pos.x + ", " + organ.pos.y +
-//					") to protein A at position (" + proteinPos.x + ", " + proteinPos.y + ") is: " + distance + " Direction : " + direction);
+				//				System.err.println("Distance from organ " + organ.id + " at position (" + organ.pos.x + ", " + organ.pos.y +
+				//					") to protein A at position (" + proteinPos.x + ", " + proteinPos.y + ") is: " + distance + " Direction : " + direction);
 			}
 		}
 
@@ -164,13 +164,13 @@ class Game {
 
 	private String getDirection(int deltaX, int deltaY) {
 		if (deltaX == 0 && deltaY == 0) {
-			return "Same position"; // L'organe et la protéine sont au même endroit
+			return "Same position";
 		}
 
 		if (Math.abs(deltaX) > Math.abs(deltaY)) {
-			return deltaX > 0 ? "E" : "W"; // Protéine à droite ou à gauche
+			return deltaX > 0 ? "E" : "W";
 		} else {
-			return deltaY > 0 ? "S" : "N"; // Protéine en bas ou en haut
+			return deltaY > 0 ? "S" : "N";
 		}
 	}
 
@@ -181,15 +181,14 @@ class Game {
 		for (int y = 0; y < grid.height; y++) {
 			for (int x = 0; x < grid.width; x++) {
 				Cell cell = grid.getCell(x, y);
-				if (cell.protein != null && cell.protein.equals("A")) { // Vérifier si c'est une protéine de type "A"
-					proteinPositions.add(new Pos(x, y)); // Ajouter la position de la protéine
+				if (cell.protein != null && cell.protein.equals("A")) {
+					proteinPositions.add(new Pos(x, y));
 				}
 			}
 		}
 
-		return proteinPositions; // Retourner la liste des positions des protéines "A"
+		return proteinPositions;
 	}
-
 
 	// Récuperation des cellules autour de mon organe
 	public List<Cell> getNeighbours(Organ organ) {
@@ -216,7 +215,6 @@ class Game {
 		return resultNeighbours;
 	}
 
-
 	public int computeScoreForAction(Actions action, Cell neighbour) {
 		int score = 0;
 
@@ -226,18 +224,27 @@ class Game {
 			} else {
 				score += 20; // Si la cellule a une protéine
 			}
-		} if (action == Actions.HARVESTER) {
+		}
+		if (action == Actions.HARVESTER) {
 			if (neighbour.protein == null) {
 				score += 10; //
 			} else {
-				score += 20;
+				score += 25;
 			}
 
-		}  if (action == Actions.TENTACLE) {
+		}
+		if (action == Actions.TENTACLE) {
 			if (neighbour.protein == null) {
 				score += 15;
 			} else {
 				score += 20;
+			}
+		}
+		if (action == Actions.SPORER) {
+			if (neighbour.protein == null) {
+				score += 20;
+			} else {
+				score += 25;
 			}
 		}
 		return score;
@@ -248,8 +255,19 @@ class Game {
 		Set<Cell> cellNeighbour = action.checkCellAround();
 		List<Action.Option> options = action.computeAvailableActions(cellNeighbour);
 		options.sort(Comparator.comparingInt(o -> -o.score));
-		Action.Option bestOption = action.chooseBestAction(options);
+
+		// WHILE
+		Action.Option bestOption = action.chooseBestAction(options); // Set après options
 		action.doAction(bestOption);
+
+		// gérer multi base :
+		// player.numberOfAction, pareil que ton nb de root
+		// tant que le player.nbActions (tant que = boucle while)
+		// Selection meilleure action pour un rootId non traité
+		// doAction (déjà fait)
+		// Add rootId dans le Set ID traités
+		// Attention gestion des cas de WAIT
+
 	}
 
 	// 1 : Affichage de mes organes (owner = 1)
@@ -288,7 +306,6 @@ class Action {
 	// SPORER = B + D
 	// ROOT = A + B + C + D
 
-
 	static Map<Actions, Map<Resources, Integer>> actionRessources() {
 		Map<Actions, Map<Resources, Integer>> spendForAction = new HashMap<>();
 		// For GROW (BASIC)
@@ -312,10 +329,10 @@ class Action {
 		spendForAction.put(Actions.SPORER, sporerResources);
 		// For ROOT
 		Map<Resources, Integer> rootResources = new HashMap<>();
-		rootResources.put(Resources.A,1);
-		rootResources.put(Resources.B,1);
-		rootResources.put(Resources.C,1);
-		rootResources.put(Resources.D,1);
+		rootResources.put(Resources.A, 1);
+		rootResources.put(Resources.B, 1);
+		rootResources.put(Resources.C, 1);
+		rootResources.put(Resources.D, 1);
 		spendForAction.put(Actions.ROOT, rootResources);
 
 		return spendForAction;
@@ -334,8 +351,6 @@ class Action {
 	// - Shoot la spore en n-2 de la protein
 	// - Cree un HARVESTER avec la bonne direction
 
-
-
 	// Méthode pour calculer la distance de Manhattan entre deux points
 	int calculateManhattanDistance(int x1, int y1, int x2, int y2) {
 		return Math.abs(x2 - x1) + Math.abs(y2 - y1);
@@ -347,7 +362,7 @@ class Action {
 		Set<Cell> cells = new HashSet<>();
 
 		for (Organ organ : game.myOrgans) {
-//			System.err.println("Checking organ ID: " + organ.id); // Traçabilité
+			//			System.err.println("Checking organ ID: " + organ.id); // Traçabilité
 			List<Cell> neighbours = game.getNeighbours(organ);
 			for (Cell neighbour : neighbours) {
 				if (!neighbour.isWall && neighbour.organ == null) {
@@ -367,26 +382,32 @@ class Action {
 			// Vérifie les conditions de base pour ajouter les actions
 			if (!neighbour.isWall && neighbour.organ == null) {
 				// Crée une nouvelle Option pour chaque cellule voisine
-				Option option = new Option();
-				option.neighbour = neighbour;
+				//				System.err.println(option.neighbour);
 
 				for (Organ organ : game.myOrgans) {
 					List<Cell> organNeighbours = game.getNeighbours(organ);
 					if (organNeighbours.contains(neighbour)) {
-						option.organId = organ.id; // Enregistrez l'ID de l'organe ici
+						for (Actions action : Actions.values()) {
+							Option option = new Option();
+							option.neighbour = neighbour;
+							option.organId = organ.id;
+							option.action = action;
+							option.score = game.computeScoreForAction(action, neighbour);
+
+							options.add(option);
+
+							// Pour le debug : affichage des détails de l'option
+//							System.err.println(option);
+//							System.err.println(option.score);
+//							System.err.println(option.action);
+						}
 						break;
 					}
-				}
-
-				// Ajoute toutes les actions disponibles pour cette cellule
-				for (Actions action : Actions.values()) {
-					option.action = action;
-					option.score = game.computeScoreForAction(action, neighbour);
-					options.add(option); // Ajoute l'option à la liste
 				}
 				//				System.err.println("Available actions : " + game.availableActions());
 			}
 		}
+//		System.err.println(options);
 		return options;
 	}
 
@@ -414,111 +435,56 @@ class Action {
 	// 4 (dans la class game)
 	// 5 choisir parmis les actions possibles celle avec le score le plus haut
 	Option chooseBestAction(List<Option> options) {
+		//		System.err.println(options);
 
 		for (Option option : options) {
+//			System.err.println("choose "  + option);
 			if (option != null && canBuild(option.action, game)) {
-
+				//				System.err.println(options);
+				//				System.err.println(option.action);
 				System.err.println("Best action : " + option + " with score: "
 					+ option.score + " at coordinates X: " + option.neighbour.pos.x
 					+ ", Y: " + option.neighbour.pos.y);
 				return option;
 			}
-		}
-		for (Option option : options) {
-			if (option != null && option.action == Actions.BASIC) {
-				// Si l'action BASIC échoue à cause du manque de ressources, essayons HARVESTER
-				// Vérifier si HARVESTER est une option réalisable avec les ressources disponibles
-				option.action = Actions.HARVESTER;  // Changer l'action en HARVESTER
-				if (canBuild(option.action, game)) {
-					System.err.println("Switching to HARVESTER action: " + option + " with score: "
-							+ option.score + " at coordinates X: " + option.neighbour.pos.x
-							+ ", Y: " + option.neighbour.pos.y);
-					return option;
-				}
-			}
-		}
-		for (Option option : options) {
-			if (option != null && option.action == Actions.HARVESTER) {
-				// Si l'action BASIC échoue à cause du manque de ressources, essayons HARVESTER
-				// Vérifier si HARVESTER est une option réalisable avec les ressources disponibles
-				option.action = Actions.TENTACLE;  // Changer l'action en HARVESTER
-				if (canBuild(option.action, game)) {
-					System.err.println("Switching to TENTACLE action: " + option + " with score: "
-							+ option.score + " at coordinates X: " + option.neighbour.pos.x
-							+ ", Y: " + option.neighbour.pos.y);
-					return option;
-				}
-			}
-		}
-		for (Option option : options) {
-			if (option != null && option.action == Actions.TENTACLE) {
-				// Si l'action BASIC échoue à cause du manque de ressources, essayons HARVESTER
-				// Vérifier si HARVESTER est une option réalisable avec les ressources disponibles
-				option.action = Actions.SPORER;  // Changer l'action en HARVESTER
-				if (canBuild(option.action, game)) {
-					System.err.println("Switching to TENTACLE action: " + option + " with score: "
-							+ option.score + " at coordinates X: " + option.neighbour.pos.x
-							+ ", Y: " + option.neighbour.pos.y);
-					return option;
-				}
-			}
-		}
 
-
+		}
 		return WAIT;
 	}
 
 	private boolean canBuild(Actions action, Game game) {
-		// je dois vérifier que j'ai suffisamment de protéine pour construire l'extension
+		// Récupérer les ressources nécessaires pour l'action
 		Map<Resources, Integer> requiredResources = actionRessources().get(action);
-		Map<String, Integer> availableResources = game.getMyProteins();
-
-
+//		requiredResources
+//			.forEach((r,v) -> System.err.println(action + "required  " + r + " v " + v));
+//		Map<String, Integer> availableResources = game.getMyProteins();
+//		availableResources
+//			.forEach((r,v) -> System.err.println("available  " + r + " v " + v));
+//		System.err.println("myprot" + game.getMyProteins());
+//		System.err.println("After retrieving: " + availableResources);
+		if (requiredResources == null) {
+			System.err.println("Aucune ressources restante");
+			return false; // Pas de ressources, impossible de construire
+		}
+		// Parcourir les ressources nécessaires pour l'action
 		for (Map.Entry<Resources, Integer> entry : requiredResources.entrySet()) {
 			Resources resource = entry.getKey();
 			int requiredAmount = entry.getValue();
 
-            if (game.myProteins.getOrDefault(resource.toString(), 0) < requiredAmount) {
-                // Pas assez de ressources pour cette action
-                return false;
-            }
+			// Vérifier si nous avons la quantité nécessaire de chaque ressource
+			int availableAmount = game.getMyProteins().getOrDefault(resource.name(), 0);
 
-			if (requiredAmount == 0) {
-				continue;
-			}
-			System.err.println("Quantité nécéssaire : " + requiredAmount);
-
-			String resourceKey = resource.name();
-
-
-			// Vérifier la quantité disponible
-			int availableAmount = availableResources.get(resourceKey);
-
-
-			System.err.println("Quantité disponible de " + resource.name() + " : " + availableAmount);
-
-			// Si la quantité disponible est inférieure à la quantité requise, retourner false
+			// Si la quantité disponible est inférieure à la quantité requise, l'action échoue
 			if (availableAmount < requiredAmount) {
-
-				return false;
+//				System.err.println("Pas assez de ressources pour " + resource.name() + ". Disponible: "
+//					+ availableAmount + ", Nécessaire: " + requiredAmount);
+				return false;  // Pas assez de ressources
 			}
 		}
-		return true;
+		return true;  // Si toutes les ressources sont suffisantes, on peut construire
 	}
 
 	// si plusieurs actions avec le score identiques choisir celle avec une protéine
-
-	// 6 Selon les ressources voir si l'action est faisable
-	static void displayResourcesForAction(Actions bestAction) {
-		// Récupère les ressources nécessaires pour l'action choisie
-		Map<Resources, Integer> resourcesRequired = actionRessources().get(bestAction);
-
-		// Affiche les ressources nécessaires pour l'action choisie
-		System.err.println("Resources needed for action (" + bestAction + "):");
-		for (Map.Entry<Resources, Integer> entry : resourcesRequired.entrySet()) {
-			System.err.println(entry.getKey() + ": " + entry.getValue());
-		}
-	}
 
 	// 7 Faire l'action
 	void doAction(Option bestOption) {
@@ -541,7 +507,6 @@ class Player {
 	static final String D = "D";
 
 	static final String WALL = "WALL";
-
 
 	public static void main(String args[]) {
 		Scanner in = new Scanner(System.in);
@@ -604,12 +569,20 @@ class Player {
 			game.oppProteins.put(D, oppD);
 
 			int requiredActionsCount = in.nextInt(); // your number of organisms, output an action for each one in any order
+
+			int numberOfActions = 0;
+			for (Organ organ : game.myOrgans) {
+				if (organ.organType.equals("ROOT")) {
+					numberOfActions++;
+				}
+			}
+			System.err.println("Actions count : " + numberOfActions);
+
 			for (int i = 0; i < requiredActionsCount; i++) {
-				System.err.println("Actions count : " + requiredActionsCount);
 				// Write an action using System.out.println()
 				// To debug: System.err.println("Debug messages...");
-				// game.grid.displayGrid();
 			}
+			// 			game.grid.displayGrid();
 			//			game.displayOrgansOnGrid();
 			//			game.displayProteinsOnGrid();
 			//			game.displayProteinsInSpecificArea();
@@ -619,6 +592,7 @@ class Player {
 			game.compareDistanceWithProteins(game.myOrgans, game);
 			game.displayOrgansOnGrid();
 			game.play();
+//			game.play(requiredActionsCount);
 
 		}
 	}
