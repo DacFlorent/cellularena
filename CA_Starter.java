@@ -144,13 +144,25 @@ class Game {
 		List<Pos> proteinPositions = protPositionOnGrid();
 
 		for (Organ organ : myOrgans) {
+			Pos closestProtein = null;
+			int minDistance = Integer.MAX_VALUE;
 
 			for (Pos proteinPos : proteinPositions) {
-				int deltaX = proteinPos.x - organ.pos.x; // Positif : protéine en E, négatif : protéine en W
-				int deltaY = proteinPos.y - organ.pos.y; // Positif : protéine en S, négatif : protéine en N
 				int distance = calculateManhattanDistance(organ.pos.x, organ.pos.y, proteinPos.x, proteinPos.y);
-				String direction = getDirection(deltaX, deltaY);
 
+				if (distance < minDistance) {
+					minDistance = distance;
+					closestProtein = proteinPos;
+				}
+			}
+
+			if (closestProtein != null) {
+				int deltaX = closestProtein.x - organ.pos.x;
+				int deltaY = closestProtein.y - organ.pos.y;
+
+				organ.dir = getDirection(deltaX, deltaY);
+				System.err.println("Organ " + organ.id + " targets protein at (" + closestProtein.x + ", " + closestProtein.y +
+						") | Distance: " + minDistance + " | Direction: " + organ.dir);
 				//				System.err.println("Distance from organ " + organ.id + " at position (" + organ.pos.x + ", " + organ.pos.y +
 				//					") to protein A at position (" + proteinPos.x + ", " + proteinPos.y + ") is: " + distance + " Direction : " + direction);
 			}
@@ -267,13 +279,19 @@ class Game {
 		List<Integer> rootIdProcessed = new ArrayList<>();
 		int count = 0;
 
-		while (count < requiredActionsCount) {
-			System.err.println("Nb actions par tour : " + requiredActionsCount);
-			Option bestOption = action.chooseBestAction(options, rootIdProcessed);
-			action.doAction(bestOption);
+//		while (count < requiredActionsCount) {
+//			System.err.println("Nb actions par tour : " + rootIdProcessed.size());
+//			System.err.println("Options disponibles : " + options);
+//			System.err.println("rootIdProcessed : " + rootIdProcessed);
+//			System.err.println("Nb actions par tour : " + requiredActionsCount);
+//			System.err.println(rootIdProcessed);
 
+			Option bestOption = action.chooseBestAction(options, rootIdProcessed);
+
+
+			action.doAction(bestOption);
 			rootIdProcessed.add(organMap.get(bestOption.organId).rootId);
-		}
+//		}
 
 		// gérer multi base :
 		// player.numberOfAction, pareil que ton nb de root
@@ -408,6 +426,7 @@ class Action {
 							option.organId = organ.id;
 							option.action = action;
 							option.score = game.computeScoreForAction(action, neighbour);
+							option.dir = organ.dir;
 							options.add(option);
 
 							options.addAll(action.computeOptions(game, neighbour));
@@ -441,9 +460,6 @@ class Action {
 	// 5 choisir parmis les actions possibles celle avec le score le plus haut
 	Option chooseBestAction(List<Option> options, List<Integer> rootIdProcessed) {
 		for (Option option : options) {
-			System.err.println(game.organMap.get(option.organId).rootId);
-			System.err.println(option.organId);
-			System.err.println(rootIdProcessed);
 			//	System.err.println("choose "  + option);
 			if (option != null
 				&& !rootIdProcessed.contains(game.organMap.get(option.organId).rootId)
@@ -452,8 +468,9 @@ class Action {
 				//				System.err.println(option.action);
 				System.err.println("Best action : " + option + " with score: "
 					+ option.score + " at coordinates X: " + option.neighbour.pos.x
-					+ ", Y: " + option.neighbour.pos.y);
+					+ ", Y: " + option.neighbour.pos.y + " " + option.dir);
 				return option;
+
 			}
 
 		}
@@ -650,6 +667,7 @@ class Option {
 
 	//	TODO:	Organ organ;
 	public int organId;
+	public String dir;
 	Actions action = Actions.WAIT;
 	Cell neighbour;
 	int score;
@@ -658,7 +676,7 @@ class Option {
 	public String toString() {
 		// écrit l'action pour le system out .println !
 		if (neighbour != null && neighbour.pos != null) {
-			return "GROW " + organId + " " + neighbour.pos.x + " " + neighbour.pos.y + " " + action;
+			return "GROW " + organId + " " + neighbour.pos.x + " " + neighbour.pos.y + " " + action + " " + dir;
 		} else {
 			return "WAIT";
 		}
