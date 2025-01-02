@@ -197,109 +197,6 @@ class Game {
         }
     }
 
-    public List<Integer> bestLineForSporer() {
-        List<int[]> proteinCounts = new ArrayList<>();
-
-        for (int y = 0; y < grid.height; y++) {
-            int proteinCount = 0;
-
-            for (int x = 0; x < grid.width; x++) {
-                Cell cell = grid.getCell(x, y);
-                if (cell != null && cell.protein != null) {
-                    proteinCount++;
-                }
-            }
-            proteinCounts.add(new int[]{y, proteinCount});
-        }
-        proteinCounts.sort((a, b) -> Integer.compare(b[1], a[1]));
-        List<Integer> sortedBestLine = new ArrayList<>();
-        for (int[] line : proteinCounts) {
-            sortedBestLine.add(line[0]);
-        }
-        System.err.println(sortedBestLine);
-        return sortedBestLine;
-    }
-
-    void checkBestLineFromMyRoot() {
-        for (Organ organ : myOrgans) {
-            if (organ.owner == 1) {
-                int myRootX = organ.pos.x;
-                int myRootY = organ.pos.y;
-                System.err.println(myRootX + " " + myRootY);
-
-                int targetY = bestLineForSporer().get(0);
-                int deltaSporerY = targetY - myRootY;
-                System.err.println(deltaSporerY);
-
-                int step = deltaSporerY > 0 ? 1 : -1;
-                boolean wallDetected = false;
-
-
-                for (int y = myRootY + step; y != targetY + step; y += step) {
-                    Cell cell = grid.getCell(myRootX, y);
-                    if (cell != null && cell.isWall) {
-                        System.err.println("Mur détecté à la position : (" + myRootX + ", " + y + ")");
-                        wallDetected = true;
-                        break;
-                    }
-                }
-                int pathX = myRootX;
-                int pathY = targetY;
-
-                if (wallDetected) {
-                    // Essayer X+1
-                    boolean pathFound = tryAlternateX(myRootX + 1, myRootY, targetY, step);
-                    if (pathFound) {
-                        pathX = myRootX + 1; // Mise à jour de X si chemin trouvé sur X+1
-                    }
-
-                    // Si X+1 ne fonctionne pas, essayer X-1
-                    if (!pathFound) {
-                        pathFound = tryAlternateX(myRootX - 1, myRootY, targetY, step);
-                        if (pathFound) {
-                            pathX = myRootX - 1; // Mise à jour de X si chemin trouvé sur X-1
-                        }
-                    }
-
-                    // Si aucun chemin trouvé, abandonner l'action
-                    if (!pathFound) {
-                        System.err.println("Aucun chemin alternatif disponible.");
-                        continue;
-                    }
-                }
-
-                // Appeler Sporer et ShootSpore avec les coordonnées du chemin libre
-                System.err.println("Chemin libre trouvé : (" + pathX + ", " + pathY + ")");
-                sporer(pathX, pathY);
-//                shootSpore(pathX, pathY);
-            }
-        }
-    }
-
-    boolean tryAlternateX(int alternateX, int startY, int targetY, int step) {
-        System.err.println("Essai d'une alternative sur l'axe X : " + alternateX);
-        for (int y = startY + step; y != targetY + step; y += step) {
-            Cell cell = grid.getCell(alternateX, y);
-            if (cell != null && cell.isWall) {
-                System.err.println("Mur détecté à la position : (" + alternateX + ", " + y + ")");
-                return false;
-            }
-        }
-        System.err.println("Chemin libre trouvé sur l'axe X : " + alternateX);
-        return true; // Chemin libre
-    }
-
-    void sporer(int pathX, int pathY) {
-        for (Organ organ : myOrgans) {
-            if (organ.owner == 1) {
-                System.err.println("Action Sporer déclenchée à la position : (" + pathX + ", " + pathY+ ")");
-                String action = "GROW " + organ.id + " " + pathX + " " + pathY + " SPORER ";
-                System.out.print(action);
-                // Ajouter ici la logique pour l'action Sporer
-                // Par exemple : activation de spores, mise à jour de l'état du jeu
-            }
-        }
-    }
 
     // Check all organs : if organ type = HARVESTER on récupère la direction
     // selon la direction de sa vue on détermine si le voisin dans cette direction est une protéine ou pas
@@ -769,8 +666,6 @@ class Player {
             //            Action.ActionByProtein(myA, myB, myC, myD);
             if (currentTurn == 1) {
 //                game.displayGrid();
-                game.bestLineForSporer();
-                game.checkBestLineFromMyRoot();
             }
 
             game.compareDistanceWithEnemy(game.myOrgans);
@@ -800,15 +695,20 @@ enum Actions {
     }, TENTACLE {
         @Override
         public List<Option> computeOptions(Game game, Organ organ, Cell neighbour) {
-            int score = 0;
-            int distanceOpp = organ.cell.minDistanceToEnemy;
 
-            Pos closestEnemyOrgan = organ.cell.closestEnemyOrgan;
+            ArrayList<Option> options = new ArrayList<>();
+            for (Direction direction : Direction.values()) {
+                int score = 0;
+                int distanceOpp = organ.cell.minDistanceToEnemy;
 
-            int deltaXOpp = closestEnemyOrgan.x - organ.pos.x;
-            int deltaYOpp = closestEnemyOrgan.y - organ.pos.y;
+                    Pos closestEnemyOrgan = organ.cell.closestEnemyOrgan;
 
-            distanceOpp = Math.abs(deltaXOpp) + Math.abs(deltaYOpp);
+                    int deltaXOpp = closestEnemyOrgan.x - organ.pos.x;
+                    int deltaYOpp = closestEnemyOrgan.y - organ.pos.y;
+                    System.err.print("delta X" + deltaXOpp);
+                    System.err.print("delta Y" + deltaYOpp);
+
+                    distanceOpp = Math.abs(deltaXOpp) + Math.abs(deltaYOpp);
 
 //			if (neighbour.protein == null) {
 //				score += 8;
@@ -816,14 +716,18 @@ enum Actions {
 //				score += 4;
 //			}
 
-            if (distanceOpp <= 2) {
-                score += 50;
+                    if (distanceOpp <= 2) {
+                        score += 50;
 
-            } else {
-                score += 0;
+                    } else {
+                        score += 0;
+                    }
+                    options.add(initOption(organ, neighbour, score, this, direction));
             }
-            return List.of(initOption(organ, neighbour, score, this, null));
+            return options;
+
         }
+
     }, SPORER {
         @Override
         public List<Option> computeOptions(Game game, Organ organ, Cell neighbour) {
@@ -849,6 +753,9 @@ enum Actions {
                 if (target != null && target.protein != null) {
                     score += 5;
                 }
+                if (neighbour.isHarvested) {
+                    score -= 5;
+                }
 
 
                 options.add(initOption(organ, neighbour, score, this, direction));
@@ -862,25 +769,26 @@ enum Actions {
             int score = 0;
 
             if (neighbour.isHarvested) {
-//                System.err.println("Cell at " + neighbour.pos + " is already harvested.");
+                System.err.println("Cell at " + neighbour.pos.x + "," + neighbour.pos.y + " is already harvested.");
                 return List.of(initOption(organ, neighbour, score, this, null));
             }
 
             if (neighbour.protein == null) {
                 score += 2;
             } else {
+                score += 6;
 
                 switch (neighbour.protein) {
                     case "A":
-                        score += 5;
-                    case "B":
                         score += 10;
+                    case "B":
+                        score += 15;
                         break;
                     case "C":
-                        score += 8;
+                        score += 15;
                         break;
                     case "D":
-                        score += 15;
+                        score += 5;
                         break;
                     default:
                         score += 10;
