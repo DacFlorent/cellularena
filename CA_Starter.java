@@ -170,6 +170,19 @@ class Game {
 	// Check all organs : if organ type = HARVESTER
 	// Check target cell : if target cell = PROTEIN
 	// Else HARVESTED = true
+	List<Pos> checkOrgansType() {
+		List<Pos> organPositions = new ArrayList<>();
+
+		for (int y = 0; y < grid.height; y++) {
+			for (int x = 0; x < grid.width; x++) {
+				Cell cell = grid.getCell(x, y);
+				if (cell.organ != null && cell.organ.owner == 1 && cell.organ.organType.equals("HARVESTER") ) {
+					organPositions.add(new Pos(x, y));
+				}
+			}
+		}
+		return organPositions;
+	}
 
 	List<Pos> protPositionOnGrid() {
 		List<Pos> proteinPositions = new ArrayList<>();
@@ -768,6 +781,7 @@ class Player {
 			//            Action.ActionByProtein(myA, myB, myC, myD);
 			game.compareDistanceWithProteins(game.myOrgans);
 			game.compareDistanceWithEnemy(game.myOrgans);
+			game.checkOrgansType();
 			game.displayOrgansOnGrid();
 			game.play(requiredActionsCount);
 
@@ -893,7 +907,7 @@ enum Actions {
 }
 
 enum CellType {
-	WALL, EMPTY, PROTEIN, ORGAN
+	WALL, EMPTY, PROTEIN, ORGAN, HARVESTER
 }
 
 enum Resources {
