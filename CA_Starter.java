@@ -53,6 +53,7 @@ class Cell {
 	boolean isWall;
 	String protein;
 	Organ organ;
+    boolean isHarvested;
 
 	Pos closestProtein;
 	int minDistance;
@@ -177,7 +178,23 @@ class Game {
 				Cell cell = grid.getCell(x, y);
 				if (cell.organ != null && cell.organ.owner == 1 && cell.organ.organType.equals("HARVESTER") ) {
 					String direction = cell.organ.dir;
+					Cell neighbour = null;
 					System.err.println("" + x + "" + y + "" + direction);
+
+					if ("N".equals(direction)) {
+                        neighbour = grid.getCell(x, y - 1);
+					} else if ("S".equals(direction)) {
+                        neighbour = grid.getCell(x, y + 1);
+					} else if ("E".equals(direction)) {
+                        neighbour = grid.getCell(x + 1, y);
+					} else if ("W".equals(direction)) {
+                        neighbour = grid.getCell(x - 1, y);
+					}
+                    System.err.println("Before: isHarvested = " + cell.isHarvested);
+                    if (neighbour != null && neighbour.protein != null) {
+                        neighbour.isHarvested = true;
+                    }
+                    System.err.println("After: isHarvested = " + cell.isHarvested);
 				}
 			}
 		}
@@ -801,8 +818,10 @@ enum Actions {
 
 			Pos closestEnemyOrgan = organ.cell.closestEnemyOrgan;
 
-			int deltaX = closestEnemyOrgan.x - organ.pos.x;
-			int deltaY = closestEnemyOrgan.y - organ.pos.y;
+			int deltaXOpp = closestEnemyOrgan.x - organ.pos.x;
+			int deltaYOpp = closestEnemyOrgan.y - organ.pos.y;
+
+            distanceOpp = Math.abs(deltaXOpp) + Math.abs(deltaYOpp);
 
 //			if (neighbour.protein == null) {
 //				score += 8;
@@ -854,25 +873,30 @@ enum Actions {
 		@Override
 		public List<Option> computeOptions(Game game, Organ organ, Cell neighbour) {
 			int score = 0;
+
+            if (neighbour.isHarvested) {
+                System.err.println("Cell at " + neighbour.pos + " is already harvested.");
+                return List.of(initOption(organ, neighbour, score, this, null));
+            }
+
 			if (neighbour.protein == null) {
-				score += 2; // Si la cellule n'a pas de protéine
+				score += 2;
 			} else {
-				// Vérifie le type de protéine et affecte un score différent
+
 				switch (neighbour.protein) {
 					case "A":
-						score += 5; // Score spécifique pour la protéine A
-						break;
+						score += 5;
 					case "B":
-						score += 10; // Score spécifique pour la protéine B
+						score += 10;
 						break;
 					case "C":
-						score += 8;  // Score spécifique pour la protéine C
+						score += 8;
 						break;
 					case "D":
-						score += 15;  // Score spécifique pour la protéine D
+						score += 15;
 						break;
 					default:
-						score += 10; // Score par défaut pour les autres protéines
+						score += 10;
 						break;
 				}
 			}
