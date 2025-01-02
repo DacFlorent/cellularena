@@ -117,6 +117,22 @@ class Grid {
 
 	}
 
+	public Cell at(Cell neighbour, Direction direction) {
+
+		int deltaX = 0;
+		int deltaY=0;
+		if (direction == Direction.W) {
+			deltaX = -1;
+		} else if (direction == Direction.E) {
+			deltaX = 1;
+		} else if (direction == Direction.S) {
+			deltaY = +1;
+		} else {
+			deltaY = -1;
+		}
+
+		return getCell(neighbour.pos.x + deltaX, neighbour.pos.y + deltaY);
+	}
 }
 
 class Game {
@@ -781,13 +797,13 @@ enum Actions {
 			int deltaX = closestEnemyOrgan.x - organ.pos.x;
 			int deltaY = closestEnemyOrgan.y - organ.pos.y;
 
-			if (neighbour.protein == null) {
-				score += 8;
-			} else {
-				score += 4;
-			}
+//			if (neighbour.protein == null) {
+//				score += 8;
+//			} else {
+//				score += 4;
+//			}
 
-			if (distanceOpp == 2) {
+			if (distanceOpp <= 2) {
 				score += 50;
 				organ.dir = Game.getDirection(deltaX, deltaY);
 				System.err.print("Direction vers la l'organe  : " + organ.dir + " ");
@@ -811,34 +827,21 @@ enum Actions {
 	}, HARVESTER {
 		@Override
 		public List<Option> computeOptions(Game game, Organ organ, Cell neighbour) {
-			// TODO : pour chaque direction
-			// -> récupère la cellule de la direction
-			// si protein...
-			int score = 0;
-			Pos closestProtein = neighbour.closestProtein;
 
-			if (closestProtein != null) {
-				int distance = organ.cell.minDistance;
-				int deltaX = closestProtein.x - organ.pos.x;
-				int deltaY = closestProtein.y - organ.pos.y;
+			ArrayList<Option> options = new ArrayList<>();
+			for (Direction direction : Direction.values()) {
 
-				// ici problème car le neighbour devrait être selected neighbour.
-				// gestion des murs
-				if (neighbour.protein == null) {
-					score += 10;
-				} else {
-					score += 8;
+				Cell target = game.grid.at(neighbour, direction);
+
+				int score = 0;
+				if (target != null && target.protein != null) {
+					score += 5;
 				}
 
-				if (distance == 2) {
-					score += 50;
-					organ.dir = Game.getDirection(deltaX, deltaY);
-					//				System.err.print("Direction vers la proteine : " + organ.dir + " ");
-				} else {
-					score += 0;
-				}
+
+				options.add(initOption(organ, neighbour, score, this, direction));
 			}
-			return List.of(initOption(organ, neighbour, score, this, null));
+			return options;
 		}
 	},
 	BASIC {
@@ -846,7 +849,7 @@ enum Actions {
 		public List<Option> computeOptions(Game game, Organ organ, Cell neighbour) {
 			int score = 0;
 			if (neighbour.protein == null) {
-				score += 12; // Si la cellule n'a pas de protéine
+				score += 2; // Si la cellule n'a pas de protéine
 			} else {
 				// Vérifie le type de protéine et affecte un score différent
 				switch (neighbour.protein) {
