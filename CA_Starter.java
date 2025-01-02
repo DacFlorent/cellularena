@@ -179,7 +179,7 @@ class Game {
 				if (cell.organ != null && cell.organ.owner == 1 && cell.organ.organType.equals("HARVESTER") ) {
 					String direction = cell.organ.dir;
 					Cell neighbour = null;
-					System.err.println("" + x + "" + y + "" + direction);
+//					System.err.println("" + x + "" + y + "" + direction);
 
 					if ("N".equals(direction)) {
                         neighbour = grid.getCell(x, y - 1);
@@ -190,11 +190,9 @@ class Game {
 					} else if ("W".equals(direction)) {
                         neighbour = grid.getCell(x - 1, y);
 					}
-                    System.err.println("Before: isHarvested = " + cell.isHarvested);
                     if (neighbour != null && neighbour.protein != null) {
                         neighbour.isHarvested = true;
                     }
-                    System.err.println("After: isHarvested = " + cell.isHarvested);
 				}
 			}
 		}
