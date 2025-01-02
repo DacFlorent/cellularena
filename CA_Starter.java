@@ -28,7 +28,6 @@ class Organ {
 	String organType;
 	String dir;
 
-
 	Organ(int id, int owner, int parentId, int rootId, Pos pos, String organType, String dir) {
 		this.id = id;
 		this.owner = owner;
@@ -54,7 +53,6 @@ class Cell {
 	boolean isWall;
 	String protein;
 	Organ organ;
-
 
 	Pos closestProtein;
 	int minDistance;
@@ -153,7 +151,6 @@ class Game {
 		proteinPositions.clear();
 	}
 
-
 	List<Pos> protPositionOnGrid() {
 		List<Pos> proteinPositions = new ArrayList<>();
 
@@ -187,7 +184,7 @@ class Game {
 		return Math.abs(x2 - x1) + Math.abs(y2 - y1);
 	}
 
-	public String getDirection(int deltaX, int deltaY) {
+	public static String getDirection(int deltaX, int deltaY) {
 		if (deltaX == 0 && deltaY == 0) {
 			return "Same position";
 		}
@@ -572,15 +569,14 @@ class Action {
 					List<Cell> organNeighbours = game.getNeighbours(organ);
 					if (organNeighbours.contains(neighbour)) {
 						for (Actions action : Actions.values()) {
-							Option option = new Option();
-							option.neighbour = neighbour;
-							option.organId = organ.id;
-							option.action = action;
-							option.score = game.computeScoreForAction(action, neighbour, organ);
-							options.add(option);
-							option.dir = organ.dir;
+//							Option option = new Option();
+//							option.neighbour = neighbour;
+//							option.organId = organ.id;
+//							option.action = action;
+//							option.score = game.computeScoreForAction(action, neighbour, organ);
+//							options.add(option);
 
-							options.addAll(action.computeOptions(game, neighbour));
+							options.addAll(action.computeOptions(game, organ, neighbour));
 
 							// Pour le debug : affichage des détails de l'option
 							//							System.err.println(option);
@@ -716,7 +712,6 @@ class Player {
 					game.organMap.put(organId, organ);
 				}
 
-
 				if (cell != null) {
 					game.grid.setCell(pos, cell);
 				}
@@ -767,38 +762,127 @@ enum Direction {
 enum Actions {
 	WAIT {
 		@Override
-		public List<Option> computeOptions(Game game, Cell neighbour) {
+		public List<Option> computeOptions(Game game, Organ organ, Cell neighbour) {
 			return Collections.emptyList();
 		}
 	}, ROOT {
 		@Override
-		public List<Option> computeOptions(Game game, Cell neighbour) {
+		public List<Option> computeOptions(Game game, Organ organ, Cell neighbour) {
 			return Collections.emptyList();
 		}
 	}, TENTACLE {
 		@Override
-		public List<Option> computeOptions(Game game, Cell neighbour) {
-			return Collections.emptyList();
+		public List<Option> computeOptions(Game game, Organ organ, Cell neighbour) {
+			int score = 0;
+			int distanceOpp = organ.cell.minDistanceToEnemy;
+
+			Pos closestEnemyOrgan = organ.cell.closestEnemyOrgan;
+
+			int deltaX = closestEnemyOrgan.x - organ.pos.x;
+			int deltaY = closestEnemyOrgan.y - organ.pos.y;
+
+			if (neighbour.protein == null) {
+				score += 8;
+			} else {
+				score += 4;
+			}
+
+			if (distanceOpp == 2) {
+				score += 50;
+				organ.dir = Game.getDirection(deltaX, deltaY);
+				System.err.print("Direction vers la l'organe  : " + organ.dir + " ");
+			} else {
+				score += 0;
+			}
+			return List.of(initOption(organ, neighbour, score, this, null));
 		}
 	}, SPORER {
 		@Override
-		public List<Option> computeOptions(Game game, Cell neighbour) {
-			return Collections.emptyList();
+		public List<Option> computeOptions(Game game, Organ organ, Cell neighbour) {
+			int score = 0;
+
+			if (neighbour.protein == null) {
+				score += 4;
+			} else {
+				score += 2;
+			}
+			return List.of(initOption(organ, neighbour, score, this, null));
 		}
 	}, HARVESTER {
 		@Override
-		public List<Option> computeOptions(Game game, Cell neighbour) {
-			return Collections.emptyList();
+		public List<Option> computeOptions(Game game, Organ organ, Cell neighbour) {
+			// TODO : pour chaque direction
+			// -> récupère la cellule de la direction
+			// si protein...
+			int score = 0;
+			Pos closestProtein = neighbour.closestProtein;
+
+			if (closestProtein != null) {
+				int distance = organ.cell.minDistance;
+				int deltaX = closestProtein.x - organ.pos.x;
+				int deltaY = closestProtein.y - organ.pos.y;
+
+				// ici problème car le neighbour devrait être selected neighbour.
+				// gestion des murs
+				if (neighbour.protein == null) {
+					score += 10;
+				} else {
+					score += 8;
+				}
+
+				if (distance == 2) {
+					score += 50;
+					organ.dir = Game.getDirection(deltaX, deltaY);
+					//				System.err.print("Direction vers la proteine : " + organ.dir + " ");
+				} else {
+					score += 0;
+				}
+			}
+			return List.of(initOption(organ, neighbour, score, this, null));
 		}
 	},
 	BASIC {
 		@Override
-		public List<Option> computeOptions(Game game, Cell neighbour) {
-			return Collections.emptyList();
+		public List<Option> computeOptions(Game game, Organ organ, Cell neighbour) {
+			int score = 0;
+			if (neighbour.protein == null) {
+				score += 12; // Si la cellule n'a pas de protéine
+			} else {
+				// Vérifie le type de protéine et affecte un score différent
+				switch (neighbour.protein) {
+					case "A":
+						score += 5; // Score spécifique pour la protéine A
+						break;
+					case "B":
+						score += 10; // Score spécifique pour la protéine B
+						break;
+					case "C":
+						score += 8;  // Score spécifique pour la protéine C
+						break;
+					case "D":
+						score += 15;  // Score spécifique pour la protéine D
+						break;
+					default:
+						score += 10; // Score par défaut pour les autres protéines
+						break;
+				}
+			}
+			return List.of(initOption(organ, neighbour, score, this, null));
 		}
+
 	};
 
-	public abstract List<Option> computeOptions(Game game, Cell neighbour);
+	public abstract List<Option> computeOptions(Game game, Organ organ, Cell neighbour);
+
+	private static Option initOption(Organ organ, Cell neighbour, int score, Actions actions, Direction direction) {
+		Option option = new Option();
+		option.neighbour = neighbour;
+		option.organId = organ.id;
+		option.action = actions;
+		option.score = score;
+		option.dir = direction;
+		return option;
+	}
 }
 
 enum CellType {
@@ -813,7 +897,7 @@ class Option {
 
 	//	TODO:	Organ organ;
 	public int organId;
-	public String dir;
+	public Direction dir;
 	Actions action = Actions.WAIT;
 	Cell neighbour;
 	int score;
