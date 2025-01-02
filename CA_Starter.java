@@ -181,6 +181,8 @@ class Game {
 			}
 		}
 	}
+	void checkHarvesteredCells(String direction) {
+	}
 
 	List<Pos> protPositionOnGrid() {
 		List<Pos> proteinPositions = new ArrayList<>();
