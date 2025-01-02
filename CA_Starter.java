@@ -167,11 +167,11 @@ class Game {
 		proteinPositions.clear();
 	}
 
-	// Check all organs : if organ type = HARVESTER on récupère la direction de sa vue
+	// Check all organs : if organ type = HARVESTER on récupère la direction
 	// selon la direction de sa vue on détermine si le voisin dans cette direction est une protéine ou pas
 	// Check target cell : if target cell = PROTEIN
 	// Si c'est le cas HARVESTED = true
-	void checkOrgansType() {
+	void checkProteinsHarvested() {
 		for (int y = 0; y < grid.height; y++) {
 			for (int x = 0; x < grid.width; x++) {
 				Cell cell = grid.getCell(x, y);
@@ -180,10 +180,6 @@ class Game {
 					System.err.println("" + x + "" + y + "" + direction);
 				}
 			}
-		}
-	}
-	void checkHarvesteredCells(String direction) {
-		if (direction.equals("S")) {
 		}
 	}
 
@@ -774,7 +770,7 @@ class Player {
 			//            Action.ActionByProtein(myA, myB, myC, myD);
 //			game.compareDistanceWithProteins(game.myOrgans);
 			game.compareDistanceWithEnemy(game.myOrgans);
-			game.checkOrgansType();
+			game.checkProteinsHarvested();
 			game.displayOrgansOnGrid();
 			game.play(requiredActionsCount);
 
