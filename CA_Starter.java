@@ -32,6 +32,11 @@ class Organ {
     Pos farthestProtein;
     int maxDistance;
 
+	Pos closestEnemyOrgan;
+	int minDistanceToEnemy;
+	Pos farthestEnemyOrgan;
+	int maxDistanceToEnemy;
+
     Organ(int id, int owner, int parentId, int rootId, Pos pos, String organType, String dir) {
         this.id = id;
         this.owner = owner;
@@ -157,9 +162,22 @@ class Game {
                 }
             }
         }
-
         return proteinPositions;
     }
+
+	List<Pos> enemyOrganPositions() {
+		List<Pos> organPositions = new ArrayList<>();
+
+		for (int y = 0; y < grid.height; y++) {
+			for (int x = 0; x < grid.width; x++) {
+				Cell cell = grid.getCell(x, y);
+				if (cell.organ != null && cell.organ.owner == 0) {
+					organPositions.add(new Pos(x, y));
+				}
+			}
+		}
+		return organPositions;
+	}
 
     int calculateManhattanDistance(int x1, int y1, int x2, int y2) {
         return Math.abs(x2 - x1) + Math.abs(y2 - y1);
@@ -232,6 +250,55 @@ class Game {
         }
     }
 
+	void compareDistanceWithEnemy(List<Organ> myOrgans) {
+		List<Pos> enemyOrganPositions = enemyOrganPositions();
+
+		for (Organ organ : myOrgans) {
+			Pos closestEnemyOrgan = null;
+			int minDistance = Integer.MAX_VALUE;
+			Pos farthestEnemyOrgan = null;
+			int maxDistance = Integer.MIN_VALUE;
+
+
+			for (Pos enemyPos : enemyOrganPositions) {
+				int distance = calculateManhattanDistance(organ.pos.x, organ.pos.y, enemyPos.x, enemyPos.y);
+
+				if (distance < minDistance) {
+					minDistance = distance;
+					closestEnemyOrgan = enemyPos;
+				}
+				if (distance > maxDistance) {
+					maxDistance = distance;
+					farthestEnemyOrgan = enemyPos;
+				}
+			}
+
+
+			if (closestEnemyOrgan != null) {
+				int deltaX = closestEnemyOrgan.x - organ.pos.x;
+				int deltaY = closestEnemyOrgan.y - organ.pos.y;
+
+				organ.dir = getDirection(deltaX, deltaY);
+				organ.closestEnemyOrgan = closestEnemyOrgan;
+				organ.minDistanceToEnemy = minDistance;
+
+				System.err.println("Organ " + organ.id + " closest enemy organ at (" + closestEnemyOrgan.x + ", " + closestEnemyOrgan.y + ") | Min distance: " + minDistance + " | Direction: " + organ.dir);
+			}
+
+
+			if (farthestEnemyOrgan != null) {
+				int deltaX = farthestEnemyOrgan.x - organ.pos.x;
+				int deltaY = farthestEnemyOrgan.y - organ.pos.y;
+
+				organ.dir = getDirection(deltaX, deltaY);
+				organ.farthestEnemyOrgan = farthestEnemyOrgan;
+				organ.maxDistanceToEnemy = maxDistance;
+
+//				System.err.println("Organ " + organ.id + " farthest enemy organ at (" + farthestEnemyOrgan.x + ", " + farthestEnemyOrgan.y + ") | Max distance: " + maxDistance);
+			}
+		}
+	}
+
 
     public List<Cell> getNeighbours(Organ organ) {
         List<Cell> resultNeighbours = new ArrayList<>();
@@ -257,12 +324,13 @@ class Game {
     public int computeScoreForAction(Actions action, Cell neighbour, Organ organ) {
         int score = 0;
         int distance = organ.minDistance;
+		int distanceOpp = organ.minDistanceToEnemy;
 
         if (action == Actions.BASIC) {
             if (neighbour.protein == null) {
                 score += 20; // Si la cellule n'a pas de protéine
             } else {
-                score += 30; // Si la cellule a une protéine
+                score += 5; // Si la cellule a une protéine
             }
         }
         if (action == Actions.HARVESTER) {
@@ -271,13 +339,12 @@ class Game {
             // si protein...
             Pos closestProtein = organ.closestProtein;
 
-
             int deltaX = closestProtein.x - organ.pos.x;
             int deltaY = closestProtein.y - organ.pos.y;
             // ici problème car le neighbour devrait être selected neighbour.
-
+			// gestion des murs
             if (neighbour.protein == null) {
-                score += 10; //
+                score += 10;
             } else {
                 score += 5;
             }
@@ -285,17 +352,31 @@ class Game {
             if (distance == 2) {
                 score += 50;
                 organ.dir = getDirection(deltaX, deltaY);
-                System.err.print(organ.dir);
+                System.err.print("Direction vers la proteine : " + organ.dir + " ");
             } else {
                 score += 0;
             }
         }
         if (action == Actions.TENTACLE) {
+
+			Pos closestEnemyOrgan = organ.closestEnemyOrgan;
+
+			int deltaX = closestEnemyOrgan.x - organ.pos.x;
+			int deltaY = closestEnemyOrgan.y - organ.pos.y;
+
             if (neighbour.protein == null) {
                 score += 15;
             } else {
                 score += 5;
             }
+
+			if (distanceOpp == 2) {
+				score += 50;
+				organ.dir = getDirection(deltaX, deltaY);
+				System.err.print("Direction vers la l'organe  : " + organ.dir + " ");
+			} else {
+				score += 0;
+			}
         }
         if (action == Actions.SPORER) {
 
@@ -634,6 +715,7 @@ class Player {
             //			game.reachProt();
             //            Action.ActionByProtein(myA, myB, myC, myD);
             game.compareDistanceWithProteins(game.myOrgans);
+			game.compareDistanceWithEnemy(game.myOrgans);
             game.displayOrgansOnGrid();
             game.play(requiredActionsCount);
 
