@@ -167,6 +167,10 @@ class Game {
 		proteinPositions.clear();
 	}
 
+	// Check all organs : if organ type = HARVESTER
+	// Check target cell : if target cell = PROTEIN
+	// Else HARVESTED = true
+
 	List<Pos> protPositionOnGrid() {
 		List<Pos> proteinPositions = new ArrayList<>();
 
