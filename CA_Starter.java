@@ -284,53 +284,51 @@ class Game {
 //		}
 //	}
 
-//	void compareDistanceWithEnemy(List<Organ> myOrgans) {
-//		List<Pos> enemyOrganPositions = enemyOrganPositions();
-//
-//		for (Organ organ : myOrgans) {
-//			Pos closestEnemyOrgan = null;
-//			int minDistance = Integer.MAX_VALUE;
-//			Pos farthestEnemyOrgan = null;
-//			int maxDistance = Integer.MIN_VALUE;
-//
-//			for (Pos enemyPos : enemyOrganPositions) {
-//				int distance = calculateManhattanDistance(organ.pos.x, organ.pos.y, enemyPos.x, enemyPos.y);
-//
-//				if (distance < minDistance) {
-//					minDistance = distance;
-//					closestEnemyOrgan = enemyPos;
-//				}
-//				if (distance > maxDistance) {
-//					maxDistance = distance;
-//					farthestEnemyOrgan = enemyPos;
-//				}
-//			}
-//
-//			if (closestEnemyOrgan != null) {
-//				int deltaX = closestEnemyOrgan.x - organ.pos.x;
-//				int deltaY = closestEnemyOrgan.y - organ.pos.y;
-//
-//				organ.dir = getDirection(deltaX, deltaY);
-//				organ.cell.closestEnemyOrgan = closestEnemyOrgan;
-//				organ.cell.minDistanceToEnemy = minDistance;
-//
-//				//				System.err.println(
-//				//					"Organ " + organ.id + " closest enemy organ at (" + closestEnemyOrgan.x + ", " + closestEnemyOrgan.y + ") | Min distance: " + minDistance
-//				//						+ " | Direction: " + organ.dir);
-//			}
-//
-//			if (farthestEnemyOrgan != null) {
-//				int deltaX = farthestEnemyOrgan.x - organ.pos.x;
-//				int deltaY = farthestEnemyOrgan.y - organ.pos.y;
-//
-//				organ.dir = getDirection(deltaX, deltaY);
-//				organ.cell.farthestEnemyOrgan = farthestEnemyOrgan;
-//				organ.cell.maxDistanceToEnemy = maxDistance;
-//
-//				//				System.err.println("Organ " + organ.id + " farthest enemy organ at (" + farthestEnemyOrgan.x + ", " + farthestEnemyOrgan.y + ") | Max distance: " + maxDistance);
-//			}
-//		}
-//	}
+	void compareDistanceWithEnemy(List<Organ> myOrgans) {
+		List<Pos> enemyOrganPositions = enemyOrganPositions();
+
+		for (Organ organ : myOrgans) {
+			Pos closestEnemyOrgan = null;
+			int minDistance = Integer.MAX_VALUE;
+			Pos farthestEnemyOrgan = null;
+			int maxDistance = Integer.MIN_VALUE;
+
+			for (Pos enemyPos : enemyOrganPositions) {
+				int distance = calculateManhattanDistance(organ.pos.x, organ.pos.y, enemyPos.x, enemyPos.y);
+
+				if (distance < minDistance) {
+					minDistance = distance;
+					closestEnemyOrgan = enemyPos;
+				}
+				if (distance > maxDistance) {
+					maxDistance = distance;
+					farthestEnemyOrgan = enemyPos;
+				}
+			}
+
+			if (closestEnemyOrgan != null) {
+				int deltaX = closestEnemyOrgan.x - organ.pos.x;
+				int deltaY = closestEnemyOrgan.y - organ.pos.y;
+
+				organ.cell.closestEnemyOrgan = closestEnemyOrgan;
+				organ.cell.minDistanceToEnemy = minDistance;
+
+				//				System.err.println(
+				//					"Organ " + organ.id + " closest enemy organ at (" + closestEnemyOrgan.x + ", " + closestEnemyOrgan.y + ") | Min distance: " + minDistance
+				//						+ " | Direction: " + organ.dir);
+			}
+
+			if (farthestEnemyOrgan != null) {
+				int deltaX = farthestEnemyOrgan.x - organ.pos.x;
+				int deltaY = farthestEnemyOrgan.y - organ.pos.y;
+
+				organ.cell.farthestEnemyOrgan = farthestEnemyOrgan;
+				organ.cell.maxDistanceToEnemy = maxDistance;
+
+				//				System.err.println("Organ " + organ.id + " farthest enemy organ at (" + farthestEnemyOrgan.x + ", " + farthestEnemyOrgan.y + ") | Max distance: " + maxDistance);
+			}
+		}
+	}
 
 	public List<Cell> getNeighbours(Organ organ) {
 		List<Cell> resultNeighbours = new ArrayList<>();
@@ -417,7 +415,6 @@ class Game {
 
 				if (distance == 2) {
 					score += 50;
-					organ.dir = getDirection(deltaX, deltaY);
 					//				System.err.print("Direction vers la proteine : " + organ.dir + " ");
 				} else {
 					score += 0;
@@ -439,8 +436,7 @@ class Game {
 
 			if (distanceOpp == 2) {
 				score += 50;
-				organ.dir = getDirection(deltaX, deltaY);
-				System.err.print("Direction vers la l'organe  : " + organ.dir + " ");
+
 			} else {
 				score += 0;
 			}
@@ -778,7 +774,7 @@ class Player {
 			//			game.reachProt();
 			//            Action.ActionByProtein(myA, myB, myC, myD);
 //			game.compareDistanceWithProteins(game.myOrgans);
-//			game.compareDistanceWithEnemy(game.myOrgans);
+			game.compareDistanceWithEnemy(game.myOrgans);
 			game.checkOrgansType();
 			game.displayOrgansOnGrid();
 			game.play(requiredActionsCount);
@@ -821,8 +817,7 @@ enum Actions {
 
 			if (distanceOpp <= 2) {
 				score += 50;
-				organ.dir = Game.getDirection(deltaX, deltaY);
-				System.err.print("Direction vers la l'organe  : " + organ.dir + " ");
+
 			} else {
 				score += 0;
 			}
