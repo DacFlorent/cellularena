@@ -309,9 +309,6 @@ class Game {
 			}
 
 			if (closestEnemyOrgan != null) {
-				int deltaX = closestEnemyOrgan.x - organ.pos.x;
-				int deltaY = closestEnemyOrgan.y - organ.pos.y;
-
 				organ.cell.closestEnemyOrgan = closestEnemyOrgan;
 				organ.cell.minDistanceToEnemy = minDistance;
 
@@ -321,9 +318,6 @@ class Game {
 			}
 
 			if (farthestEnemyOrgan != null) {
-				int deltaX = farthestEnemyOrgan.x - organ.pos.x;
-				int deltaY = farthestEnemyOrgan.y - organ.pos.y;
-
 				organ.cell.farthestEnemyOrgan = farthestEnemyOrgan;
 				organ.cell.maxDistanceToEnemy = maxDistance;
 
