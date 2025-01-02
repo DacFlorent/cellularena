@@ -699,7 +699,7 @@ enum Actions {
             ArrayList<Option> options = new ArrayList<>();
             for (Direction direction : Direction.values()) {
                 int score = 0;
-                int distanceOpp = organ.cell.minDistanceToEnemy;
+                int distanceOpp;
 
                     Pos closestEnemyOrgan = organ.cell.closestEnemyOrgan;
 
