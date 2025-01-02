@@ -1,3 +1,4 @@
+import javax.sound.midi.SysexMessage;
 import java.util.*;
 import java.util.List;
 
@@ -196,19 +197,19 @@ class Game {
         }
     }
 
-    public List<Integer> bestLineForSporer(){
+    public List<Integer> bestLineForSporer() {
         List<int[]> proteinCounts = new ArrayList<>();
 
         for (int y = 0; y < grid.height; y++) {
             int proteinCount = 0;
 
-        for (int x = 0; x < grid.width; x++) {
-            Cell cell = grid.getCell(x, y);
-            if (cell != null && cell.protein != null) {
-                proteinCount++;
+            for (int x = 0; x < grid.width; x++) {
+                Cell cell = grid.getCell(x, y);
+                if (cell != null && cell.protein != null) {
+                    proteinCount++;
+                }
             }
-        }
-            proteinCounts.add(new int[] {y, proteinCount});
+            proteinCounts.add(new int[]{y, proteinCount});
         }
         proteinCounts.sort((a, b) -> Integer.compare(b[1], a[1]));
         List<Integer> sortedBestLine = new ArrayList<>();
@@ -217,6 +218,87 @@ class Game {
         }
         System.err.println(sortedBestLine);
         return sortedBestLine;
+    }
+
+    void checkBestLineFromMyRoot() {
+        for (Organ organ : myOrgans) {
+            if (organ.owner == 1) {
+                int myRootX = organ.pos.x;
+                int myRootY = organ.pos.y;
+                System.err.println(myRootX + " " + myRootY);
+
+                int targetY = bestLineForSporer().get(0);
+                int deltaSporerY = targetY - myRootY;
+                System.err.println(deltaSporerY);
+
+                int step = deltaSporerY > 0 ? 1 : -1;
+                boolean wallDetected = false;
+
+
+                for (int y = myRootY + step; y != targetY + step; y += step) {
+                    Cell cell = grid.getCell(myRootX, y);
+                    if (cell != null && cell.isWall) {
+                        System.err.println("Mur détecté à la position : (" + myRootX + ", " + y + ")");
+                        wallDetected = true;
+                        break;
+                    }
+                }
+                int pathX = myRootX;
+                int pathY = targetY;
+
+                if (wallDetected) {
+                    // Essayer X+1
+                    boolean pathFound = tryAlternateX(myRootX + 1, myRootY, targetY, step);
+                    if (pathFound) {
+                        pathX = myRootX + 1; // Mise à jour de X si chemin trouvé sur X+1
+                    }
+
+                    // Si X+1 ne fonctionne pas, essayer X-1
+                    if (!pathFound) {
+                        pathFound = tryAlternateX(myRootX - 1, myRootY, targetY, step);
+                        if (pathFound) {
+                            pathX = myRootX - 1; // Mise à jour de X si chemin trouvé sur X-1
+                        }
+                    }
+
+                    // Si aucun chemin trouvé, abandonner l'action
+                    if (!pathFound) {
+                        System.err.println("Aucun chemin alternatif disponible.");
+                        continue;
+                    }
+                }
+
+                // Appeler Sporer et ShootSpore avec les coordonnées du chemin libre
+                System.err.println("Chemin libre trouvé : (" + pathX + ", " + pathY + ")");
+                sporer(pathX, pathY);
+//                shootSpore(pathX, pathY);
+            }
+        }
+    }
+
+    boolean tryAlternateX(int alternateX, int startY, int targetY, int step) {
+        System.err.println("Essai d'une alternative sur l'axe X : " + alternateX);
+        for (int y = startY + step; y != targetY + step; y += step) {
+            Cell cell = grid.getCell(alternateX, y);
+            if (cell != null && cell.isWall) {
+                System.err.println("Mur détecté à la position : (" + alternateX + ", " + y + ")");
+                return false;
+            }
+        }
+        System.err.println("Chemin libre trouvé sur l'axe X : " + alternateX);
+        return true; // Chemin libre
+    }
+
+    void sporer(int pathX, int pathY) {
+        for (Organ organ : myOrgans) {
+            if (organ.owner == 1) {
+                System.err.println("Action Sporer déclenchée à la position : (" + pathX + ", " + pathY+ ")");
+                String action = "GROW " + organ.id + " " + pathX + " " + pathY + " SPORER ";
+                System.out.print(action);
+                // Ajouter ici la logique pour l'action Sporer
+                // Par exemple : activation de spores, mise à jour de l'état du jeu
+            }
+        }
     }
 
     // Check all organs : if organ type = HARVESTER on récupère la direction
@@ -688,6 +770,7 @@ class Player {
             if (currentTurn == 1) {
 //                game.displayGrid();
                 game.bestLineForSporer();
+                game.checkBestLineFromMyRoot();
             }
 
             game.compareDistanceWithEnemy(game.myOrgans);
@@ -779,7 +862,7 @@ enum Actions {
             int score = 0;
 
             if (neighbour.isHarvested) {
-                System.err.println("Cell at " + neighbour.pos + " is already harvested.");
+//                System.err.println("Cell at " + neighbour.pos + " is already harvested.");
                 return List.of(initOption(organ, neighbour, score, this, null));
             }
 
