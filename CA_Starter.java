@@ -819,7 +819,7 @@ enum Actions {
 		public List<Option> computeOptions(Game game, Organ organ, Cell neighbour) {
 
 			ArrayList<Option> options = new ArrayList<>();
-			for (Direction direction : Direction.values()) {
+
 				int score = 0;
 				int distanceOpp;
 
@@ -827,15 +827,32 @@ enum Actions {
 
 				int deltaXOpp = closestEnemyOrgan.x - organ.pos.x;
 				int deltaYOpp = closestEnemyOrgan.y - organ.pos.y;
-				// FAIRE LA GESTION DES TENTACLES
 
 				distanceOpp = Math.abs(deltaXOpp) + Math.abs(deltaYOpp);
 
-				//			if (neighbour.protein == null) {
-				//				score += 8;
-				//			} else {
-				//				score += 4;
-				//			}
+				String tentacleDirection = "";
+
+			if (Math.abs(deltaXOpp) > Math.abs(deltaYOpp)) {
+				// Si l'ennemi est à gauche
+				if (deltaXOpp < 0) {
+					tentacleDirection = String.valueOf(Direction.W);
+				}
+				// Si l'ennemi est à droite
+				else if (deltaXOpp > 0) {
+					tentacleDirection = String.valueOf(Direction.E);
+				}
+			}
+			// Sinon, priorité à l'axe Y (vertical)
+			else {
+				// Si l'ennemi est en haut
+				if (deltaYOpp < 0) {
+					tentacleDirection = String.valueOf(Direction.N);
+				}
+				// Si l'ennemi est en bas
+				else if (deltaYOpp > 0) {
+					tentacleDirection = String.valueOf(Direction.S);
+				}
+			}
 
 				if (distanceOpp <= 2) {
 					score += 50;
@@ -843,8 +860,9 @@ enum Actions {
 				} else {
 					score += 0;
 				}
-				options.add(initOption(organ, neighbour, score, this, direction));
-			}
+				System.err.println("Direction : " + tentacleDirection);
+				options.add(initOption(organ, neighbour, score, this, Direction.valueOf(tentacleDirection)));
+
 			return options;
 
 		}
