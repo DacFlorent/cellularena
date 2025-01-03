@@ -305,12 +305,12 @@ class Game {
 
 	public String shootEmAll(Pos sporerPos) {
 		String actionShoot = "";
-		if (!myOrgans.isEmpty()) {
-			Organ firstOrgan = myOrgans.get(0);
-
-			actionShoot = "SPORE " + firstOrgan.id + " " + sporerPos.x + " " + sporerPos.y;
-			System.err.println(actionShoot);
-			System.err.println(firstOrgan.id);
+		for (Organ organ : myOrgans) {
+			if (organ.organType.equals("SPORER")) {
+				actionShoot = "SPORE " + organ.id + " " + sporerPos.x + " " + sporerPos.y;
+				System.err.println(actionShoot);
+				System.err.println(organ.id);
+			}
 
 		}
 		return actionShoot;
