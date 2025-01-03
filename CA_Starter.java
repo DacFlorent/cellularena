@@ -320,10 +320,17 @@ class Game {
     public void play(int requiredActionsCount) {
         Action action = new Action(this);
         Set<Cell> cellNeighbour = action.checkCellAround();
-        List<Option> options = action.computeAvailableActions(cellNeighbour);
-        options.sort(Comparator.comparingInt(o -> -o.score));
 
-        // WHILE
+        // liste des possibilités avec un score estimé
+        List<Option> options = action.computeAvailableActions(cellNeighbour);
+
+        // decisionnaire
+        options = options.stream()
+//                .filter(o -> o.score > 1000)
+                .sorted(Comparator.comparingInt(o -> -o.score))
+                .toList();
+
+        // Sélection des actions à réaliser par ordre pour chaque root
         List<Integer> rootIdProcessed = new ArrayList<>();
         int count = 0;
 
@@ -459,22 +466,23 @@ class Action {
                     List<Cell> organNeighbours = game.getNeighbours(organ);
                     if (organNeighbours.contains(neighbour)) {
                         for (Actions action : Actions.values()) {
-                            if (action == Actions.ROOT && !organ.organType.equals("SPORER")) {
-                                continue;
+                            if (action == Actions.ROOT) {
+                                if (organ.organType.equals("SPORER")) {
+                                    Direction direction = Direction.valueOf(organ.dir);
+                                    Cell target = game.grid.at(neighbour, direction);
+                                    int i = 1;
+                                    while (target != null && !target.isWall && target.organ == null) {
+                                        i++;
+                                        if (i >= 3) {
+                                            options.addAll(Actions.ROOT.computeOptions(game, organ, target));
+                                        }
+                                        target = game.grid.at(target, direction);
+                                    }
+
+                                }
+                            } else {
+                                options.addAll(action.computeOptions(game, organ, neighbour));
                             }
-                            //							Option option = new Option();
-                            //							option.neighbour = neighbour;
-                            //							option.organId = organ.id;
-                            //							option.action = action;
-                            //							option.score = game.computeScoreForAction(action, neighbour, organ);
-                            //							options.add(option);
-
-                            options.addAll(action.computeOptions(game, organ, neighbour));
-
-                            // Pour le debug : affichage des détails de l'option
-                            //							System.err.println(option);
-                            //							System.err.println(option.score);
-                            //							System.err.println(option.action);
                         }
                         break;
                     }
@@ -676,18 +684,8 @@ enum Actions {
             // 3 cases autours :
             // proteine ajoute 1 au score
             // si proteine a une distance de 2 du root, on ajoute 2 supplémentaire
-            ArrayList<Option> options = new ArrayList<>();
-
             int score = Math.abs(organ.pos.x - neighbour.pos.x) + Math.abs(organ.pos.y - neighbour.pos.y);
-            for (Direction direction : Direction.values()) {
-                Cell target = game.grid.at(neighbour, direction);
-
-                if (target != null && target.organ != null && target.organ.owner == 0) {
-                    score += 7;
-                    options.add(initOption(organ, neighbour, score, this, direction));
-                }
-            }
-            return options;
+            return List.of(initOption(organ, neighbour, score, this, null));
         }
 
     }, TENTACLE {
@@ -808,18 +806,13 @@ class Option {
     @Override
     public String toString() {
         System.err.println(score);
-        System.err.println(action);
-        // écrit l'action pour le system out .println !
-        if (neighbour != null && neighbour.pos != null) {
-            if (score > 50) {
-                System.err.print("ici");
-                Direction dir = Direction.valueOf("FIRE");
-                return "SPORE " + organId + " " + neighbour.pos.x + " " + neighbour.pos.y + " " + dir;
-            } else {
-                return "GROW " + organId + " " + neighbour.pos.x + " " + neighbour.pos.y + " " + action + " " + dir;
-            }
-        } else {
-            return "WAIT";
-        }
+        return switch (action) {
+            case WAIT -> "WAIT";
+            case ROOT -> "SPORE %d %d %d".formatted(organId, neighbour.pos.x, neighbour.pos.y);
+            case SPORER -> "GROW %d %d %d SPORER %s".formatted(organId, neighbour.pos.x, neighbour.pos.y, dir.toString());
+            case BASIC -> "GROW %d %d %d BASIC".formatted(organId, neighbour.pos.x, neighbour.pos.y);
+            case TENTACLE -> "GROW %d %d %d TENTACLE %s".formatted(organId, neighbour.pos.x, neighbour.pos.y, dir.toString());
+            case HARVESTER -> "GROW %d %d %d HARVESTER %s".formatted(organId, neighbour.pos.x, neighbour.pos.y, dir.toString());
+        };
     }
 }
