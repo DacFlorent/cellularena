@@ -678,9 +678,6 @@ enum Actions {
 
 			int score = Math.abs(organ.pos.x - neighbour.pos.x) + Math.abs(organ.pos.y - neighbour.pos.y);
 
-			if (organ.organType.equals("SPORER")) {
-				score += 100;
-			}
 			return List.of(Actions.initOption(organ, neighbour, score,
 				this, null));
 		}
@@ -765,6 +762,11 @@ enum Actions {
 			return List.of(initOption(organ, neighbour, score, this, null));
 		}
 
+	}, SPORE{
+		@Override
+		public List<Option> computeOptions(Game game, Organ organ, Cell neighbour) {
+			return List.of();
+		}
 	};
 
 	public abstract List<Option> computeOptions(Game game, Organ organ, Cell neighbour);
