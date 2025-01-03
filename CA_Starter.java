@@ -685,24 +685,24 @@ enum Actions {
             // proteine ajoute 1 au score
             // si proteine a une distance de 2 du root, on ajoute 2 supplémentaire
             int score = Math.abs(organ.pos.x - neighbour.pos.x) + Math.abs(organ.pos.y - neighbour.pos.y);
+
+            if (organ.organType.equals("SPORER")) {
+                score -=10;
+            }
             return List.of(initOption(organ, neighbour, score, this, null));
         }
 
     }, TENTACLE {
         @Override
         public List<Option> computeOptions(Game game, Organ organ, Cell neighbour) {
-
             ArrayList<Option> options = new ArrayList<>();
             for (Direction direction : Direction.values()) {
-
                 Cell target = game.grid.at(neighbour, direction);
-
                 int score = 0;
                 if (target != null && target.organ != null && target.organ.owner == 0) {
-                    score = 50;
+                    score = 60;
                 }
-
-
+                options.add(initOption(organ, neighbour, score, this, direction));
             }
             return options;
 
@@ -718,7 +718,7 @@ enum Actions {
                 int i = 1;
                 int score = 0;
                 while (target != null && !target.isWall && target.organ == null) {
-                    System.err.println("Target coordinates: (" + target.pos.x + ", " + target.pos.y + ")" + score);
+//                    System.err.println("Target coordinates: (" + target.pos.x + ", " + target.pos.y + ")" + score);
                     i++;
                     if (i >= 3) {
                         List<Option> rootOptions = ROOT.computeOptions(game, organ, target);
@@ -809,10 +809,13 @@ class Option {
         return switch (action) {
             case WAIT -> "WAIT";
             case ROOT -> "SPORE %d %d %d".formatted(organId, neighbour.pos.x, neighbour.pos.y);
-            case SPORER -> "GROW %d %d %d SPORER %s".formatted(organId, neighbour.pos.x, neighbour.pos.y, dir.toString());
+            case SPORER ->
+                    "GROW %d %d %d SPORER %s".formatted(organId, neighbour.pos.x, neighbour.pos.y, dir.toString());
             case BASIC -> "GROW %d %d %d BASIC".formatted(organId, neighbour.pos.x, neighbour.pos.y);
-            case TENTACLE -> "GROW %d %d %d TENTACLE %s".formatted(organId, neighbour.pos.x, neighbour.pos.y, dir.toString());
-            case HARVESTER -> "GROW %d %d %d HARVESTER %s".formatted(organId, neighbour.pos.x, neighbour.pos.y, dir.toString());
+            case TENTACLE ->
+                    "GROW %d %d %d TENTACLE %s".formatted(organId, neighbour.pos.x, neighbour.pos.y, dir.toString());
+            case HARVESTER ->
+                    "GROW %d %d %d HARVESTER %s".formatted(organId, neighbour.pos.x, neighbour.pos.y, dir.toString());
         };
     }
 }
