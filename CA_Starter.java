@@ -305,10 +305,12 @@ class Game {
 
 	public String shootEmAll(Pos sporerPos) {
 		String actionShoot = "";
-		for (Organ organ : myOrgans) {
-			actionShoot = "SPORE " + organ.id + " " + sporerPos.x + " " + sporerPos.y;
+		if (!myOrgans.isEmpty()) {
+			Organ firstOrgan = myOrgans.get(0);
+
+			actionShoot = "SPORE " + firstOrgan.id + " " + sporerPos.x + " " + sporerPos.y;
 			System.err.println(actionShoot);
-			System.err.println(organ.id);
+			System.err.println(firstOrgan.id);
 
 		}
 		return actionShoot;
@@ -781,12 +783,12 @@ class Player {
 			if (currentTurn == 1) {
 				Pos sporerPos = game.checkMaxDistanceFromMyRoot();
 				String sporerDirection = game.sporerDirection(sporerPos);
-				game.putSporer(sporerPos, sporerDirection);
+//				game.putSporer(sporerPos, sporerDirection);
 				System.out.println(game.putSporer(sporerPos, sporerDirection));
 				// game.displayGrid();
 			} else if (currentTurn == 2) {
 				Pos sporerPos = game.checkMaxDistanceFromMyRoot();
-				game.shootEmAll(sporerPos);
+//				game.shootEmAll(sporerPos);
 				System.out.println(game.shootEmAll(sporerPos));
 			} else if (currentTurn > 2) {
 				game.compareDistanceWithEnemy(game.myOrgans);
