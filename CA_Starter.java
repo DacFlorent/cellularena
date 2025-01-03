@@ -55,11 +55,6 @@ class Cell {
 	Organ organ;
 	boolean isHarvested;
 
-	Pos closestProtein;
-	int minDistance;
-	Pos farthestProtein;
-	int maxDistance;
-
 	Pos closestEnemyOrgan;
 	int minDistanceToEnemy;
 	Pos farthestEnemyOrgan;
@@ -146,10 +141,6 @@ class Game {
 	Map<Integer, Organ> organMap;
 	Map<String, Pos> proteinPositions;
 
-	private int sporeTargetX;
-	private int sporeTargetY;
-	private String sporerDirection;
-
 	Game(int width, int height) {
 		grid = new Grid(width, height);
 		myProteins = new HashMap<>();
@@ -198,124 +189,6 @@ class Game {
 		}
 	}
 
-	public Pos checkMaxDistanceFromMyRoot() {
-		Pos sporerPos = new Pos(0, 0);
-
-		for (Organ organ : myOrgans) {
-			int myRootX = organ.pos.x;
-			int myRootY = organ.pos.y;
-
-			int maxDistanceXLeft = myRootX;
-			int maxDistanceXRight = grid.width - myRootX - 1;
-			int maxDistanceYUp = myRootY;
-			int maxDistanceYDown = grid.height - myRootY - 1;
-
-			for (int x = myRootX - 1; x >= 0; x--) {
-				Cell cell = grid.getCell(x, myRootY);
-				if (cell.isWall) {
-					maxDistanceXLeft = myRootX - x - 1;
-					break;
-				}
-			}
-
-			for (int x = myRootX + 1; x < grid.width; x++) {
-				Cell cell = grid.getCell(x, myRootY);
-				if (cell.isWall) {
-					maxDistanceXRight = x - myRootX - 1;
-					break;
-				}
-			}
-			for (int y = myRootY - 1; y >= 0; y--) {
-				Cell cell = grid.getCell(myRootX, y);
-				if (cell.isWall) {
-					maxDistanceYUp = myRootY - y - 1;
-					break;
-				}
-			}
-
-			for (int y = myRootY + 1; y < grid.height; y++) {
-				Cell cell = grid.getCell(myRootX, y);
-				if (cell.isWall) {
-					maxDistanceYDown = y - myRootY - 1;
-					break;
-				}
-			}
-
-			int maxDistance = Math.max(Math.max(maxDistanceXLeft, maxDistanceXRight),
-				Math.max(maxDistanceYUp, maxDistanceYDown));
-
-			int sporeTargetX = myRootX;
-			int sporeTargetY = myRootY;
-
-			if (maxDistance == maxDistanceXLeft) {
-				sporeTargetX = myRootX - maxDistance;
-				sporeTargetY = myRootY;
-			} else if (maxDistance == maxDistanceXRight) {
-				sporeTargetX = myRootX + maxDistance;
-				sporeTargetY = myRootY;
-			} else if (maxDistance == maxDistanceYUp) {
-				sporeTargetX = myRootX;
-				sporeTargetY = myRootY - maxDistance;
-			} else if (maxDistance == maxDistanceYDown) {
-				sporeTargetX = myRootX;
-				sporeTargetY = myRootY + maxDistance;
-			}
-
-			sporerPos = new Pos(sporeTargetX, sporeTargetY);
-
-			System.err.println("Direction avec la plus grande distance : ");
-			System.err.println("Max distance : " + maxDistance);
-			System.err.println("Cellule cible : (" + sporeTargetX + ", " + sporeTargetY + ")");
-
-		}
-		return sporerPos;
-	}
-
-	public String sporerDirection(Pos sporerPos) {
-		String sporerDirection = "";
-
-		for (Organ organ : myOrgans) {
-
-			int deltaXSporer = sporerPos.x - organ.pos.x;
-			int deltaYSporer = sporerPos.y - organ.pos.y;
-
-			if (deltaXSporer < 0) {
-				sporerDirection = "W";
-			} else if (deltaXSporer > 0) {
-				sporerDirection = "E";
-			} else if (deltaYSporer < 0) {
-				sporerDirection = "N";
-			} else if (deltaYSporer > 0) {
-				sporerDirection = "S";
-			}
-		}
-		System.err.println("direction : " + sporerDirection);
-		return sporerDirection;
-	}
-
-	public String putSporer(Pos sporerPos, String sporerDirection) {
-		String actionSporer = "";
-		for (Organ organ : myOrgans) {
-
-			actionSporer = "GROW " + organ.id + " " + sporerPos.x + " " + sporerPos.y + " SPORER " + sporerDirection;
-			System.err.println(actionSporer);
-		}
-		return actionSporer;
-	}
-
-	public String shootEmAll(Pos sporerPos) {
-		String actionShoot = "";
-		for (Organ organ : myOrgans) {
-			if (organ.organType.equals("SPORER")) {
-				actionShoot = "SPORE " + organ.id + " " + sporerPos.x + " " + sporerPos.y;
-				System.err.println(actionShoot);
-				System.err.println(organ.id);
-			}
-
-		}
-		return actionShoot;
-	}
-
 	// Check all organs : if organ type = HARVESTER on récupère la direction
 	// selon la direction de sa vue on détermine si le voisin dans cette direction est une protéine ou pas
 	// Check target cell : if target cell = PROTEIN
@@ -344,21 +217,6 @@ class Game {
 				}
 			}
 		}
-	}
-
-	List<Pos> protPositionOnGrid() {
-		List<Pos> proteinPositions = new ArrayList<>();
-
-		for (int y = 0; y < grid.height; y++) {
-			for (int x = 0; x < grid.width; x++) {
-				Cell cell = grid.getCell(x, y);
-				if (cell.protein != null) { // && cell.protein.equals("A")
-					proteinPositions.add(new Pos(x, y));
-				}
-			}
-		}
-
-		return proteinPositions;
 	}
 
 	List<Pos> enemyOrganPositions() {
@@ -601,6 +459,9 @@ class Action {
 					List<Cell> organNeighbours = game.getNeighbours(organ);
 					if (organNeighbours.contains(neighbour)) {
 						for (Actions action : Actions.values()) {
+							if (action == Actions.ROOT && !organ.organType.equals("SPORER")) {
+								continue;
+							}
 							//							Option option = new Option();
 							//							option.neighbour = neighbour;
 							//							option.organId = organ.id;
@@ -769,10 +630,6 @@ class Player {
 
 			int requiredActionsCount = in.nextInt(); // your number of organisms, output an action for each one in any order
 
-			for (int i = 0; i < requiredActionsCount; i++) {
-				// Write an action using System.out.println()
-				// To debug: System.err.println("Debug messages...");
-			}
 			// 			game.grid.displayGrid();
 			//			game.displayOrgansOnGrid();
 			//			game.displayProteinsOnGrid();
@@ -780,22 +637,22 @@ class Player {
 			//			game.updateProteinPositions();
 			//			game.reachProt();
 			//            Action.ActionByProtein(myA, myB, myC, myD);
-			if (currentTurn == 1) {
-				Pos sporerPos = game.checkMaxDistanceFromMyRoot();
-				String sporerDirection = game.sporerDirection(sporerPos);
-//				game.putSporer(sporerPos, sporerDirection);
-				System.out.println(game.putSporer(sporerPos, sporerDirection));
-				// game.displayGrid();
-			} else if (currentTurn == 2) {
-				Pos sporerPos = game.checkMaxDistanceFromMyRoot();
-//				game.shootEmAll(sporerPos);
-				System.out.println(game.shootEmAll(sporerPos));
-			} else if (currentTurn > 2) {
-				game.compareDistanceWithEnemy(game.myOrgans);
-				game.checkProteinsHarvested();
-				game.displayOrgansOnGrid();
-				game.play(requiredActionsCount);
-			}
+			//			if (currentTurn == 1) {
+			//				Pos sporerPos = game.checkMaxDistanceFromMyRoot();
+			//				String sporerDirection = game.sporerDirection(sporerPos);
+			////				game.putSporer(sporerPos, sporerDirection);
+			//				System.out.println(game.putSporer(sporerPos, sporerDirection));
+			//				// game.displayGrid();
+			//			} else if (currentTurn == 2) {
+			//				Pos sporerPos = game.checkMaxDistanceFromMyRoot();
+			////				game.shootEmAll(sporerPos);
+			//				System.out.println(game.shootEmAll(sporerPos));
+			//			} else if (currentTurn > 2) {
+			game.compareDistanceWithEnemy(game.myOrgans);
+			game.checkProteinsHarvested();
+			game.displayOrgansOnGrid();
+			game.play(requiredActionsCount);
+			//			}
 
 		}
 	}
@@ -814,57 +671,35 @@ enum Actions {
 	}, ROOT {
 		@Override
 		public List<Option> computeOptions(Game game, Organ organ, Cell neighbour) {
-			return Collections.emptyList();
+			// TODO: calculer le score du ROOT en fonction des proteines qui l'entourent.
+			// 3 cases autours :
+			// proteine ajoute 1 au score
+			// si proteine a une distance de 2 du root, on ajoute 2 supplémentaire
+
+			int score = Math.abs(organ.pos.x - neighbour.pos.x) + Math.abs(organ.pos.y - neighbour.pos.y);
+
+			if (organ.organType.equals("SPORER")) {
+				score += 100;
+			}
+			return List.of(Actions.initOption(organ, neighbour, score,
+				this, null));
 		}
 	}, TENTACLE {
 		@Override
 		public List<Option> computeOptions(Game game, Organ organ, Cell neighbour) {
 
 			ArrayList<Option> options = new ArrayList<>();
+			for (Direction direction : Direction.values()) {
+
+				Cell target = game.grid.at(neighbour, direction);
 
 				int score = 0;
-				int distanceOpp;
-
-				Pos closestEnemyOrgan = organ.cell.closestEnemyOrgan;
-
-				int deltaXOpp = closestEnemyOrgan.x - organ.pos.x;
-				int deltaYOpp = closestEnemyOrgan.y - organ.pos.y;
-
-				distanceOpp = Math.abs(deltaXOpp) + Math.abs(deltaYOpp);
-
-				String tentacleDirection = "";
-
-			if (Math.abs(deltaXOpp) > Math.abs(deltaYOpp)) {
-				// Si l'ennemi est à gauche
-				if (deltaXOpp < 0) {
-					tentacleDirection = String.valueOf(Direction.W);
+				if (target != null && target.organ != null && target.organ.owner == 0) {
+					score = 50;
 				}
-				// Si l'ennemi est à droite
-				else if (deltaXOpp > 0) {
-					tentacleDirection = String.valueOf(Direction.E);
-				}
+
+				options.add(initOption(organ, neighbour, score, this, direction));
 			}
-			// Sinon, priorité à l'axe Y (vertical)
-			else {
-				// Si l'ennemi est en haut
-				if (deltaYOpp < 0) {
-					tentacleDirection = String.valueOf(Direction.N);
-				}
-				// Si l'ennemi est en bas
-				else if (deltaYOpp > 0) {
-					tentacleDirection = String.valueOf(Direction.S);
-				}
-			}
-
-				if (distanceOpp <= 2) {
-					score += 50;
-
-				} else {
-					score += 0;
-				}
-				System.err.println("Direction : " + tentacleDirection);
-				options.add(initOption(organ, neighbour, score, this, Direction.valueOf(tentacleDirection)));
-
 			return options;
 
 		}
@@ -872,14 +707,25 @@ enum Actions {
 	}, SPORER {
 		@Override
 		public List<Option> computeOptions(Game game, Organ organ, Cell neighbour) {
-			int score = 0;
 
-			if (neighbour.protein == null) {
-				score += 4;
-			} else {
-				score += 2;
+			ArrayList<Option> options = new ArrayList<>();
+			for (Direction direction : Direction.values()) {
+				Cell target = game.grid.at(neighbour, direction);
+				int i = 1;
+				int score = 0;
+				while (target != null && !target.isWall && target.organ == null) {
+					i++;
+					if (i >= 3) {
+						List<Option> rootOptions = ROOT.computeOptions(game, organ, target);
+						for (Option rootOption : rootOptions) {
+							score = Math.max(score, rootOption.score);
+						}
+					}
+					target = game.grid.at(target, direction);
+				}
+				options.add(initOption(organ, neighbour, score, this, direction));
 			}
-			return List.of(initOption(organ, neighbour, score, this, null));
+			return options;
 		}
 	}, HARVESTER {
 		@Override
@@ -907,32 +753,13 @@ enum Actions {
 		@Override
 		public List<Option> computeOptions(Game game, Organ organ, Cell neighbour) {
 			int score = 0;
-
 			if (neighbour.isHarvested) {
 				System.err.println("Cell at " + neighbour.pos.x + "," + neighbour.pos.y + " is already harvested.");
-				return List.of(initOption(organ, neighbour, score, this, null));
-			}
-
-			if (neighbour.protein == null) {
-				score += 2;
 			} else {
-				score += 6;
-
-				switch (neighbour.protein) {
-					case "A":
-						score += 10;
-					case "B":
-						score += 15;
-						break;
-					case "C":
-						score += 15;
-						break;
-					case "D":
-						score += 5;
-						break;
-					default:
-						score += 10;
-						break;
+				if (neighbour.protein == null) {
+					score += 2;
+				} else {
+					score += 6;
 				}
 			}
 			return List.of(initOption(organ, neighbour, score, this, null));
@@ -963,7 +790,6 @@ enum Resources {
 
 class Option {
 
-	//	TODO:	Organ organ;
 	public int organId;
 	public Direction dir;
 	Actions action = Actions.WAIT;
@@ -972,10 +798,14 @@ class Option {
 
 	@Override
 	public String toString() {
+		System.err.println(score);
+		System.err.println(action);
 		// écrit l'action pour le system out .println !
 		if (neighbour != null && neighbour.pos != null) {
 			return "GROW " + organId + " " + neighbour.pos.x + " " + neighbour.pos.y + " " + action + " " + dir;
-		} else {
+		}
+//			return "SPORE " + organId + " " + neighbour.pos.x + " " + neighbour.pos.y;
+		else {
 			return "WAIT";
 		}
 	}
