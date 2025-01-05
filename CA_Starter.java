@@ -117,6 +117,7 @@ class Grid {
 
         int deltaX = 0;
         int deltaY = 0;
+
         if (direction == Direction.W) {
             deltaX = -1;
         } else if (direction == Direction.E) {
@@ -126,7 +127,6 @@ class Grid {
         } else {
             deltaY = -1;
         }
-
         return getCell(neighbour.pos.x + deltaX, neighbour.pos.y + deltaY);
     }
 }
@@ -469,14 +469,16 @@ class Action {
                             if (action == Actions.ROOT) {
                                 if (organ.organType.equals("SPORER")) {
                                     Direction direction = Direction.valueOf(organ.dir);
-                                    Cell target = game.grid.at(neighbour, direction);
+                                    Cell target = game.grid.at(organ.cell, direction);
+                                    System.err.println (target + " ");
+                                    System.err.println(target.pos.x + " " + target.pos.y);
                                     int i = 1;
                                     while (target != null && !target.isWall && target.organ == null) {
-                                        i++;
                                         if (i >= 3) {
                                             options.addAll(Actions.ROOT.computeOptions(game, organ, target));
                                         }
                                         target = game.grid.at(target, direction);
+                                        i++;
                                     }
 
                                 }
@@ -685,9 +687,13 @@ enum Actions {
             // proteine ajoute 1 au score
             // si proteine a une distance de 2 du root, on ajoute 2 supplémentaire
             int score = Math.abs(organ.pos.x - neighbour.pos.x) + Math.abs(organ.pos.y - neighbour.pos.y);
-
-            if (organ.organType.equals("SPORER")) {
-                score -=10;
+            for (Direction direction : Direction.values()) {
+                Cell target = game.grid.at(neighbour, direction);
+                if (target != null && !target.isWall && target.organ == null) {
+                    score += 1;
+                } else if ((organ.organType.equals("SPORER"))) {
+                    score -= 2;
+                }
             }
             return List.of(initOption(organ, neighbour, score, this, null));
         }
@@ -718,12 +724,14 @@ enum Actions {
                 int i = 1;
                 int score = 0;
                 while (target != null && !target.isWall && target.organ == null) {
-//                    System.err.println("Target coordinates: (" + target.pos.x + ", " + target.pos.y + ")" + score);
                     i++;
                     if (i >= 3) {
-                        List<Option> rootOptions = ROOT.computeOptions(game, organ, target);
-                        for (Option rootOption : rootOptions) {
-                            score = Math.max(score, rootOption.score);
+                        if (neighbour.protein != null) {
+                            score += 1;
+                            List<Option> rootOptions = ROOT.computeOptions(game, organ, target);
+                            for (Option rootOption : rootOptions) {
+                                score = Math.max(score, rootOption.score);
+                            }
                         }
                     }
                     target = game.grid.at(target, direction);
@@ -767,7 +775,7 @@ enum Actions {
                 if (neighbour.protein == null) {
                     score += 2;
                 } else {
-                    score += 6;
+                    score += 4;
                 }
             }
             return List.of(initOption(organ, neighbour, score, this, null));
@@ -805,7 +813,6 @@ class Option {
 
     @Override
     public String toString() {
-        System.err.println(score);
         return switch (action) {
             case WAIT -> "WAIT";
             case ROOT -> "SPORE %d %d %d".formatted(organId, neighbour.pos.x, neighbour.pos.y);
