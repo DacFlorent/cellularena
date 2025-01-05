@@ -1,3 +1,4 @@
+import java.sql.PseudoColumnUsage;
 import java.util.*;
 import java.util.List;
 
@@ -728,10 +729,10 @@ enum Actions {
 
                 while (target != null && !target.isWall && target.organ == null) {
                     i++;
-                    if (i < 3 && neighbour.protein != null) {
-                        break;
-                    }
-                    if (i > 3) {
+//                    if (i < 3 && neighbour.protein != null) {
+//                        break;
+//                    }
+                    if (i > 4) {
                         if (neighbour.protein != null) {
                             List<Option> rootOptions = ROOT.computeOptions(game, organ, target);
                             for (Option rootOption : rootOptions) {
@@ -741,10 +742,14 @@ enum Actions {
                     }
                     target = game.grid.at(target, direction);
                 }
-                score -= 1;
+                if (neighbour.isHarvested && neighbour.protein != null) {
+                    score -= 11;
+                }
                 options.add(initOption(organ, neighbour, score, this, direction));
+                System.err.println("score : " + score);
 
             }
+
             return options;
         }
 
@@ -754,16 +759,28 @@ enum Actions {
         public List<Option> computeOptions(Game game, Organ organ, Cell neighbour) {
 
             ArrayList<Option> options = new ArrayList<>();
+
+            int proteinCount = 0;
+
             for (Direction direction : Direction.values()) {
 
                 Cell target = game.grid.at(neighbour, direction);
 
-                int score = 0;
                 if (target != null && target.protein != null) {
-                    score += 5;
+                    proteinCount++;
+                    System.err.println("proteinCount : " + proteinCount);
                 }
-                if (neighbour.isHarvested) {
-                    score -= 6;
+
+                int score = 0;
+
+                if (target != null && target.protein != null) {
+                    if (target.isHarvested) {
+                        score -= 3;
+                    } else {
+                        score += 5;
+                    }
+                } if (target != null && target.protein != null && proteinCount > 1) {
+                    score += 10 * proteinCount;
                 }
 
                 options.add(initOption(organ, neighbour, score, this, direction));
@@ -785,6 +802,7 @@ enum Actions {
                     score += 2;
                 }
             }
+            System.err.println("score : " + score);
             return List.of(initOption(organ, neighbour, score, this, null));
         }
     };
@@ -820,7 +838,7 @@ class Option {
 
     @Override
     public String toString() {
-        System.err.println("score : " + score);
+//        System.err.println("score : " + score);
         return switch (action) {
             case WAIT -> "WAIT";
             case ROOT -> "SPORE %d %d %d".formatted(organId, neighbour.pos.x, neighbour.pos.y);
