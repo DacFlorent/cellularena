@@ -707,6 +707,8 @@ enum Actions {
                 int score = 0;
                 if (target != null && target.organ != null && target.organ.owner == 0) {
                     score = 60;
+                } else {
+                    score = 1;
                 }
                 options.add(initOption(organ, neighbour, score, this, direction));
             }
@@ -725,9 +727,8 @@ enum Actions {
                 int score = 0;
                 while (target != null && !target.isWall && target.organ == null) {
                     i++;
-                    if (i >= 3) {
+                    if (i > 3) {
                         if (neighbour.protein != null) {
-                            score += 1;
                             List<Option> rootOptions = ROOT.computeOptions(game, organ, target);
                             for (Option rootOption : rootOptions) {
                                 score = Math.max(score, rootOption.score);
@@ -813,6 +814,7 @@ class Option {
 
     @Override
     public String toString() {
+        System.err.println("score : " + score);
         return switch (action) {
             case WAIT -> "WAIT";
             case ROOT -> "SPORE %d %d %d".formatted(organId, neighbour.pos.x, neighbour.pos.y);
