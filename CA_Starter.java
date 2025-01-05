@@ -470,8 +470,6 @@ class Action {
                                 if (organ.organType.equals("SPORER")) {
                                     Direction direction = Direction.valueOf(organ.dir);
                                     Cell target = game.grid.at(organ.cell, direction);
-                                    System.err.println (target + " ");
-                                    System.err.println(target.pos.x + " " + target.pos.y);
                                     int i = 1;
                                     while (target != null && !target.isWall && target.organ == null) {
                                         if (i >= 3) {
@@ -673,6 +671,7 @@ enum Direction {
 }
 
 enum Actions {
+
     WAIT {
         @Override
         public List<Option> computeOptions(Game game, Organ organ, Cell neighbour) {
@@ -692,7 +691,7 @@ enum Actions {
                 if (target != null && !target.isWall && target.organ == null) {
                     score += 1;
                 } else if ((organ.organType.equals("SPORER"))) {
-                    score -= 2;
+                    score -= 4;
                 }
             }
             return List.of(initOption(organ, neighbour, score, this, null));
@@ -725,8 +724,13 @@ enum Actions {
                 Cell target = game.grid.at(neighbour, direction);
                 int i = 1;
                 int score = 0;
+
+
                 while (target != null && !target.isWall && target.organ == null) {
                     i++;
+                    if (i < 3 && neighbour.protein != null) {
+                        break;
+                    }
                     if (i > 3) {
                         if (neighbour.protein != null) {
                             List<Option> rootOptions = ROOT.computeOptions(game, organ, target);
@@ -737,6 +741,7 @@ enum Actions {
                     }
                     target = game.grid.at(target, direction);
                 }
+                score -= 1;
                 options.add(initOption(organ, neighbour, score, this, direction));
 
             }
@@ -758,7 +763,7 @@ enum Actions {
                     score += 5;
                 }
                 if (neighbour.isHarvested) {
-                    score -= 5;
+                    score -= 6;
                 }
 
                 options.add(initOption(organ, neighbour, score, this, direction));
@@ -770,13 +775,14 @@ enum Actions {
         @Override
         public List<Option> computeOptions(Game game, Organ organ, Cell neighbour) {
             int score = 0;
+
             if (neighbour.isHarvested) {
-                System.err.println("Cell at " + neighbour.pos.x + "," + neighbour.pos.y + " is already harvested.");
+//                System.err.println("Cell at " + neighbour.pos.x + "," + neighbour.pos.y + " is already harvested.");
             } else {
                 if (neighbour.protein == null) {
-                    score += 2;
+                    score += 3;
                 } else {
-                    score += 4;
+                    score += 2;
                 }
             }
             return List.of(initOption(organ, neighbour, score, this, null));
