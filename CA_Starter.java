@@ -804,9 +804,19 @@ enum Actions {
                     }
                     target = game.grid.at(target, direction);
                 }
-                if (neighbour.isHarvested && neighbour.protein != null) {
-                    score -= 11;
+                if (neighbour.isHarvested) {
+                    // System.err.println("Cell at " + neighbour.pos.x + "," + neighbour.pos.y + " is already harvested.");
+                    score = 1;
+                } else {
+                    if (neighbour.protein == null) {
+                        score = 3;
+                    } else {
+                        score = 2;
+                    }
                 }
+//                if (neighbour.isHarvested && neighbour.protein != null) {
+//                    score -= 11;
+//                }
                 options.add(initOption(organ, neighbour, score, this, direction));
                 System.err.println("score : " + score);
 
