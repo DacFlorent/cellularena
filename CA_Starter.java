@@ -797,6 +797,8 @@ enum Actions {
 							}
 						} else if (neighbour.isHarvested) {
 							score = 1;
+						} else if ((organ.organType.equals("SPORER"))) {
+							score -= 10;
 						}
 						target = game.grid.at(target, direction);
 					}
