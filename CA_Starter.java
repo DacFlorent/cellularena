@@ -766,7 +766,9 @@ enum Actions {
                 if (target != null && target.organ != null && target.organ.owner == 0) {
                     score = 60;
                 } else if (game.myProteins.get("B") > 50 && game.myProteins.get("C") > 50) {
-                    score = 50;
+                    score = 100;
+                } else if (neighbour.isHarvested){
+                    score = 0;
                 } else {
                     score = 1;
                 }
