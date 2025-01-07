@@ -790,7 +790,7 @@ enum Actions {
 						break;
 					}
 					if (i > 4) {
-						if (neighbour != null && neighbour.protein != null) {
+						if (neighbour != null && neighbour.protein == null) {
 							List<Option> rootOptions = ROOT.computeOptions(game, organ, target);
 							for (Option rootOption : rootOptions) {
 								score = Math.max(score, rootOption.score);
