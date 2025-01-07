@@ -682,7 +682,61 @@ enum Actions {
         public List<Option> computeOptions(Game game, Organ organ, Cell neighbour) {
             return Collections.emptyList();
         }
-    }, ROOT {
+    },
+    BASIC {
+        @Override
+        public List<Option> computeOptions(Game game, Organ organ, Cell neighbour) {
+            int score = 0;
+
+            if (neighbour.isHarvested) {
+                // System.err.println("Cell at " + neighbour.pos.x + "," + neighbour.pos.y + " is already harvested.");
+                score = 1;
+            } else {
+                if (neighbour.protein == null) {
+                    score = 3;
+                } else {
+                    score = 2;
+                }
+            }
+            System.err.println("score : " + score);
+            return List.of(initOption(organ, neighbour, score, this, null));
+        }
+    },
+    HARVESTER {
+        @Override
+        public List<Option> computeOptions(Game game, Organ organ, Cell neighbour) {
+
+            ArrayList<Option> options = new ArrayList<>();
+
+            int proteinCount = 0;
+            int score = 0;
+
+            for (Direction direction : Direction.values()) {
+
+                Cell target = game.grid.at(neighbour, direction);
+
+                if (target != null && target.protein != null) {
+                    proteinCount++;
+                    score = 4;
+                    System.err.println("proteinCount : " + proteinCount);
+                }
+
+                if (target != null && target.protein != null) {
+                    if (target.isHarvested) {
+                        score -= 3;
+                    } else {
+                        score += 5;
+                    }
+                } if (neighbour != null && neighbour.protein != null && proteinCount > 1) {
+                    score += 10 * proteinCount;
+                }
+
+                options.add(initOption(organ, neighbour, score, this, direction));
+            }
+            return options;
+        }
+    },
+    ROOT {
         @Override
         public List<Option> computeOptions(Game game, Organ organ, Cell neighbour) {
 
@@ -758,57 +812,6 @@ enum Actions {
         }
 
 
-    }, HARVESTER {
-        @Override
-        public List<Option> computeOptions(Game game, Organ organ, Cell neighbour) {
-
-            ArrayList<Option> options = new ArrayList<>();
-
-            int proteinCount = 0;
-
-            for (Direction direction : Direction.values()) {
-
-                Cell target = game.grid.at(neighbour, direction);
-
-                if (target != null && target.protein != null) {
-                    proteinCount++;
-                    System.err.println("proteinCount : " + proteinCount);
-                }
-
-                int score = 0;
-
-                if (target != null && target.protein != null) {
-                    if (target.isHarvested) {
-                        score -= 3;
-                    } else {
-                        score += 5;
-                    }
-                } if (target != null && target.protein != null && proteinCount > 1) {
-                    score += 10 * proteinCount;
-                }
-
-                options.add(initOption(organ, neighbour, score, this, direction));
-            }
-            return options;
-        }
-    },
-    BASIC {
-        @Override
-        public List<Option> computeOptions(Game game, Organ organ, Cell neighbour) {
-            int score = 0;
-
-            if (neighbour.isHarvested) {
-//                System.err.println("Cell at " + neighbour.pos.x + "," + neighbour.pos.y + " is already harvested.");
-            } else {
-                if (neighbour.protein == null) {
-                    score += 3;
-                } else {
-                    score += 2;
-                }
-            }
-            System.err.println("score : " + score);
-            return List.of(initOption(organ, neighbour, score, this, null));
-        }
     };
 
     public abstract List<Option> computeOptions(Game game, Organ organ, Cell neighbour);
