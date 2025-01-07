@@ -331,9 +331,9 @@ class Game {
 
         // decisionnaire
         options = options.stream()
-//                .filter(o -> o.score > 1000)
-                .sorted(Comparator.comparingInt(o -> -o.score))
-                .toList();
+            //                .filter(o -> o.score > 1000)
+            .sorted(Comparator.comparingInt(o -> -o.score))
+            .toList();
 
         // Sélection des actions à réaliser par ordre pour chaque root
         List<Integer> rootIdProcessed = new ArrayList<>();
@@ -513,13 +513,13 @@ class Action {
         for (Option option : options) {
             //	System.err.println("choose "  + option);
             if (option != null
-                    && !rootIdProcessed.contains(game.organMap.get(option.organId).rootId)
-                    && canBuild(option.action, game)) {
+                && !rootIdProcessed.contains(game.organMap.get(option.organId).rootId)
+                && canBuild(option.action, game)) {
                 //				System.err.println(options);
                 //				System.err.println(option.action);
                 System.err.println("Best action : " + option + " with score: "
-                        + option.score + " at coordinates X: " + option.neighbour.pos.x
-                        + ", Y: " + option.neighbour.pos.y + " " + option.dir);
+                    + option.score + " at coordinates X: " + option.neighbour.pos.x
+                    + ", Y: " + option.neighbour.pos.y + " " + option.dir);
                 return option;
             }
         }
@@ -765,6 +765,8 @@ enum Actions {
                 int score = 0;
                 if (target != null && target.organ != null && target.organ.owner == 0) {
                     score = 60;
+                } else if (game.myProteins.get("B") > 50 && game.myProteins.get("C") > 50) {
+                    score = 50;
                 } else {
                     score = 1;
                 }
@@ -787,9 +789,9 @@ enum Actions {
 
                 while (target != null && !target.isWall && target.organ == null) {
                     i++;
-//                    if (i < 3 && neighbour.protein != null) {
-//                        break;
-//                    }
+                    if (i < 3 && neighbour.protein != null) {
+                        break;
+                    }
                     if (i > 4) {
                         if (neighbour.protein != null) {
                             List<Option> rootOptions = ROOT.computeOptions(game, organ, target);
@@ -845,17 +847,17 @@ class Option {
 
     @Override
     public String toString() {
-//        System.err.println("score : " + score);
+        //        System.err.println("score : " + score);
         return switch (action) {
             case WAIT -> "WAIT";
             case ROOT -> "SPORE %d %d %d".formatted(organId, neighbour.pos.x, neighbour.pos.y);
             case SPORER ->
-                    "GROW %d %d %d SPORER %s".formatted(organId, neighbour.pos.x, neighbour.pos.y, dir.toString());
+                "GROW %d %d %d SPORER %s".formatted(organId, neighbour.pos.x, neighbour.pos.y, dir.toString());
             case BASIC -> "GROW %d %d %d BASIC".formatted(organId, neighbour.pos.x, neighbour.pos.y);
             case TENTACLE ->
-                    "GROW %d %d %d TENTACLE %s".formatted(organId, neighbour.pos.x, neighbour.pos.y, dir.toString());
+                "GROW %d %d %d TENTACLE %s".formatted(organId, neighbour.pos.x, neighbour.pos.y, dir.toString());
             case HARVESTER ->
-                    "GROW %d %d %d HARVESTER %s".formatted(organId, neighbour.pos.x, neighbour.pos.y, dir.toString());
+                "GROW %d %d %d HARVESTER %s".formatted(organId, neighbour.pos.x, neighbour.pos.y, dir.toString());
         };
     }
 }
