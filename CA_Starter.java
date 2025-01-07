@@ -639,24 +639,24 @@ class Player {
 
             int requiredActionsCount = in.nextInt(); // your number of organisms, output an action for each one in any order
 
-            // 			game.grid.displayGrid();
-            //			game.displayOrgansOnGrid();
-            //			game.displayProteinsOnGrid();
-            //			game.displayProteinsInSpecificArea();
-            //			game.updateProteinPositions();
-            //			game.reachProt();
-            //            Action.ActionByProtein(myA, myB, myC, myD);
-            //			if (currentTurn == 1) {
-            //				Pos sporerPos = game.checkMaxDistanceFromMyRoot();
-            //				String sporerDirection = game.sporerDirection(sporerPos);
-            ////				game.putSporer(sporerPos, sporerDirection);
-            //				System.out.println(game.putSporer(sporerPos, sporerDirection));
-            //				// game.displayGrid();
-            //			} else if (currentTurn == 2) {
-            //				Pos sporerPos = game.checkMaxDistanceFromMyRoot();
-            ////				game.shootEmAll(sporerPos);
-            //				System.out.println(game.shootEmAll(sporerPos));
-            //			} else if (currentTurn > 2) {
+            // game.grid.displayGrid();
+            // game.displayOrgansOnGrid();
+            // game.displayProteinsOnGrid();
+            // game.displayProteinsInSpecificArea();
+            // game.updateProteinPositions();
+            // game.reachProt();
+            // Action.ActionByProtein(myA, myB, myC, myD);
+            // if (currentTurn == 1) {
+            // Pos sporerPos = game.checkMaxDistanceFromMyRoot();
+            // String sporerDirection = game.sporerDirection(sporerPos);
+            // game.putSporer(sporerPos, sporerDirection);
+            // System.out.println(game.putSporer(sporerPos, sporerDirection));
+            // game.displayGrid();
+            // } else if (currentTurn == 2) {
+            // Pos sporerPos = game.checkMaxDistanceFromMyRoot();
+            // game.shootEmAll(sporerPos);
+            // System.out.println(game.shootEmAll(sporerPos));
+            // } else if (currentTurn > 2) {
             game.compareDistanceWithEnemy(game.myOrgans);
             game.checkProteinsHarvested();
             game.displayOrgansOnGrid();
