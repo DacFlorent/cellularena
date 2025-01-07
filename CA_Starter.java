@@ -716,11 +716,14 @@ enum Actions {
 				Cell target = game.grid.at(neighbour, direction);
 
 				if (target != null && target.protein != null) {
+					if (target.isHarvested) {
+						score = 1;
+					} else {
 					proteinCount++;
 					score = 4;
 					System.err.println("proteinCount : " + proteinCount);
-				} else if (neighbour.isHarvested) {
-					score -= 3;
+				}
+
 				}
 
 				if (neighbour != null && neighbour.protein != null && proteinCount > 2) {
@@ -788,8 +791,8 @@ enum Actions {
 					i++;
 					if (i < 3 && neighbour.protein != null && neighbour.isHarvested) {
 						break;
-					} else if (i < 3 && neighbour.protein != null) {
-						score -= 100;
+					} else if (i < 3 && neighbour.protein == null) {
+						break;
 					}
 					if (i > 4) {
 						if (neighbour != null && neighbour.protein == null) {
