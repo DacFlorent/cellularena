@@ -727,7 +727,7 @@ enum Actions {
                     } else {
                         score += 5;
                     }
-                } if (neighbour != null && neighbour.protein != null && proteinCount > 1) {
+                } if (neighbour != null && neighbour.protein != null && proteinCount > 2) {
                     score += 10 * proteinCount;
                 }
 
@@ -791,32 +791,24 @@ enum Actions {
 
                 while (target != null && !target.isWall && target.organ == null) {
                     i++;
-                    if (i < 3 && neighbour.protein != null) {
+                    if (i < 3 && neighbour.protein != null && neighbour.isHarvested) {
                         break;
                     }
                     if (i > 4) {
-                        if (neighbour.protein != null) {
+                        if (neighbour != null && neighbour.protein != null) {
                             List<Option> rootOptions = ROOT.computeOptions(game, organ, target);
                             for (Option rootOption : rootOptions) {
                                 score = Math.max(score, rootOption.score);
                             }
-                        }
+                        } else if (neighbour.isHarvested) {
+                            score = 1;
                     }
                     target = game.grid.at(target, direction);
-                }
-                if (neighbour.isHarvested) {
-                    // System.err.println("Cell at " + neighbour.pos.x + "," + neighbour.pos.y + " is already harvested.");
-                    score = 1;
-                } else {
-                    if (neighbour.protein == null) {
-                        score = 3;
-                    } else {
-                        score = 2;
-                    }
                 }
 //                if (neighbour.isHarvested && neighbour.protein != null) {
 //                    score -= 11;
 //                }
+                }
                 options.add(initOption(organ, neighbour, score, this, direction));
                 System.err.println("score : " + score);
 
