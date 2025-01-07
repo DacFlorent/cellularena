@@ -164,6 +164,8 @@ class Game {
     }
 
     void displayGrid() {
+        Map<String, Integer> proteinCache = new HashMap<>();
+
         for (int y = 0; y < grid.height; y++) {
             for (int x = 0; x < grid.width; x++) {
                 Cell cell = grid.getCell(x, y);
@@ -179,6 +181,9 @@ class Game {
                     } else if (cell.protein != null) {
                         scoreCell = 10;
                         System.err.print(scoreCell + "\t");
+
+                        String positionProtein = x + "," + y;
+                        proteinCache.put(positionProtein, scoreCell);
                     } else {
                         scoreCell = 5;
                         System.err.print(scoreCell + "\t");
@@ -638,7 +643,7 @@ class Player {
 
             int requiredActionsCount = in.nextInt(); // your number of organisms, output an action for each one in any order
 
-            // game.grid.displayGrid();
+            game.displayGrid();
             // game.displayOrgansOnGrid();
             // game.displayProteinsOnGrid();
             // game.displayProteinsInSpecificArea();
