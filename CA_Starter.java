@@ -788,6 +788,8 @@ enum Actions {
 					i++;
 					if (i < 3 && neighbour.protein != null && neighbour.isHarvested) {
 						break;
+					} else if (i < 3 && neighbour.protein != null) {
+						score -= 100;
 					}
 					if (i > 4) {
 						if (neighbour != null && neighbour.protein == null) {
@@ -797,9 +799,8 @@ enum Actions {
 							}
 						} else if (neighbour.isHarvested) {
 							score = 1;
-						} else if ((organ.organType.equals("SPORER"))) {
-							score -= 10;
 						}
+
 						target = game.grid.at(target, direction);
 					}
 					//                if (neighbour.isHarvested && neighbour.protein != null) {
