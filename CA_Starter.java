@@ -748,11 +748,16 @@ enum Actions {
 			// si proteine a une distance de 2 du root, on ajoute 2 supplémentaire
 
 			int score = Math.abs(organ.pos.x - neighbour.pos.x) + Math.abs(organ.pos.y - neighbour.pos.y);
+			int i;
 
 			for (Direction direction : Direction.values()) {
 				Cell target = game.grid.at(neighbour, direction);
-				if (target != null && !target.isWall && target.organ == null) {
-					score += 1;
+				for (i = 0;i < 3; i++) {
+					if (target != null && !target.isWall && target.organ == null) {
+						score += 1;
+					} else if (target != null && target.protein != null) {
+						score += 2;
+					}
 				}
 			}
 			return List.of(initOption(organ, neighbour, score, this, null));
