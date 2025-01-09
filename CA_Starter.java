@@ -795,10 +795,8 @@ enum Actions {
 				int score = 0;
 				int sporerCount = 0;
 
-				for (Organ organs : game.myOrgans) {
-					if (organ.organType.equals("SPORER") && organ.owner == 1) {
-						sporerCount++;
-					}
+				if (organ.organType.equals("SPORER") && organ.owner == 1) {
+					sporerCount++;
 				}
 
 				if (sporerCount >= 2) {
