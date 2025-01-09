@@ -793,26 +793,38 @@ enum Actions {
 				Cell target = game.grid.at(neighbour, direction);
 				int i = 1;
 				int score = 0;
+				int sporerCount = 0;
 
-				while (target != null && !target.isWall && target.organ == null) {
-					i++;
-					if (i < 2 && neighbour.protein != null && neighbour.isHarvested) {
-						break;
-					} else if (i < 3 && neighbour.protein != null)
-						break;
-
-					if (i > 4) {
-						if (neighbour != null && neighbour.protein == null) {
-							List<Option> rootOptions = ROOT.computeOptions(game, organ, target);
-							for (Option rootOption : rootOptions) {
-								score = Math.max(score, rootOption.score);
-							}
-						}
-						target = game.grid.at(target, direction);
+				for (Organ organs : game.myOrgans) {
+					if (organ.organType.equals("SPORER") && organ.owner == 1) {
+						sporerCount++;
 					}
-					//                if (neighbour.isHarvested && neighbour.protein != null) {
-					//                    score -= 11;
-					//                }
+				}
+
+				if (sporerCount >= 2) {
+					break;
+				} else {
+
+					while (target != null && !target.isWall && target.organ == null) {
+						i++;
+						if (i < 2 && neighbour.protein != null && neighbour.isHarvested) {
+							break;
+						} else if (i < 3 && neighbour.protein != null)
+							break;
+
+						if (i > 4) {
+							if (neighbour != null && neighbour.protein == null) {
+								List<Option> rootOptions = ROOT.computeOptions(game, organ, target);
+								for (Option rootOption : rootOptions) {
+									score = Math.max(score, rootOption.score);
+								}
+							}
+							target = game.grid.at(target, direction);
+						}
+						//                if (neighbour.isHarvested && neighbour.protein != null) {
+						//                    score -= 11;
+						//                }
+					}
 				}
 				options.add(initOption(organ, neighbour, score, this, direction));
 				System.err.println("score : " + score);
