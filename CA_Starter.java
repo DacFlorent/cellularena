@@ -688,18 +688,13 @@ enum Actions {
 		public List<Option> computeOptions(Game game, Organ organ, Cell neighbour) {
 			int score = 0;
 
-			if (neighbour.protein != null && game.myProteins.get("A") < 1 && game.myProteins.get("B") < 1 && game.myProteins.get("C") < 1 && game.myProteins.get("A") < 1) {
-
-				return List.of(initOption(organ, neighbour, 20, BASIC, null));
-			}
-
 			if (neighbour.isHarvested && game.myProteins.get("A") > 1 && game.myProteins.get("B") > 1 && game.myProteins.get("C") > 1 && game.myProteins.get("A") > 1) {
 				// System.err.println("Cell at " + neighbour.pos.x + "," + neighbour.pos.y + " is already harvested.");
 				score = 1;
 			} else {
 				if (neighbour.protein == null) {
 					score = 3;
-				} else {
+				} else if (game.myProteins.get("A") < 1 && game.myProteins.get("B") < 1 && game.myProteins.get("C") < 1 && game.myProteins.get("A") < 1) {
 					score = 2;
 				}
 			}
@@ -813,7 +808,7 @@ enum Actions {
                         break;
 
                     if (i > 4) {
-                        if (neighbour != null && neighbour.protein == null) {
+                        if (neighbour != null && neighbour.protein == null && (game.myProteins.get("A") > 2 && game.myProteins.get("B") > 2 && game.myProteins.get("C") > 2 && game.myProteins.get("A") > 2)) {
                             List<Option> rootOptions = ROOT.computeOptions(game, organ, target);
                             for (Option rootOption : rootOptions) {
                                 score = Math.max(score, rootOption.score);
