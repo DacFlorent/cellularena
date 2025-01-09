@@ -698,7 +698,6 @@ enum Actions {
 					score = 2;
 				}
 			}
-			System.err.println("score : " + score);
 			return List.of(initOption(organ, neighbour, score, this, null));
 		}
 	},
@@ -728,7 +727,7 @@ enum Actions {
 
 				if (neighbour != null && neighbour.protein != null && proteinCount > 2) {
 					score += 10 * proteinCount;
-				} else if (neighbour != null && neighbour.protein != null) {
+				} else if (neighbour != null && neighbour.protein != null && neighbour.isHarvested) {
 					score -= 10;
 				}
 
