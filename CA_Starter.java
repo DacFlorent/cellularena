@@ -331,9 +331,9 @@ class Game {
 
 		// decisionnaire
 		options = options.stream()
-			//                .filter(o -> o.score > 1000)
-			.sorted(Comparator.comparingInt(o -> -o.score))
-			.toList();
+				//                .filter(o -> o.score > 1000)
+				.sorted(Comparator.comparingInt(o -> -o.score))
+				.toList();
 
 		// Sélection des actions à réaliser par ordre pour chaque root
 		List<Integer> rootIdProcessed = new ArrayList<>();
@@ -513,13 +513,13 @@ class Action {
 		for (Option option : options) {
 			//	System.err.println("choose "  + option);
 			if (option != null
-				&& !rootIdProcessed.contains(game.organMap.get(option.organId).rootId)
-				&& canBuild(option.action, game)) {
+					&& !rootIdProcessed.contains(game.organMap.get(option.organId).rootId)
+					&& canBuild(option.action, game)) {
 				//				System.err.println(options);
 				//				System.err.println(option.action);
 				System.err.println("Best action : " + option + " with score: "
-					+ option.score + " at coordinates X: " + option.neighbour.pos.x
-					+ ", Y: " + option.neighbour.pos.y + " " + option.dir);
+						+ option.score + " at coordinates X: " + option.neighbour.pos.x
+						+ ", Y: " + option.neighbour.pos.y + " " + option.dir);
 				return option;
 			}
 		}
@@ -694,8 +694,22 @@ enum Actions {
 			} else {
 				if (neighbour.protein == null) {
 					score = 3;
-				} else if (game.myProteins.get("A") < 1 && game.myProteins.get("B") < 1 && game.myProteins.get("C") < 1 && game.myProteins.get("A") < 1) {
-					score = 2;
+				} else if (neighbour.protein != null & game.myProteins.get("A") < 1 && game.myProteins.get("B") < 1 && game.myProteins.get("C") < 1 && game.myProteins.get("A") < 1) {
+					score = 50;
+				} else {
+					for (Direction direction : Direction.values()) {
+						Cell target = game.grid.at(neighbour, direction);
+						if (target != null && target.protein != null) {
+							score += 1;
+						}
+
+						if (target != null) {
+							Cell distantTarget = game.grid.at(target, direction);
+							if (distantTarget != null && distantTarget.protein != null) {
+								score += 2;
+							}
+						}
+					}
 				}
 			}
 			return List.of(initOption(organ, neighbour, score, this, null));
@@ -800,27 +814,27 @@ enum Actions {
 					continue;
 				}
 
-                while (target != null && !target.isWall && target.organ == null) {
-                    i++;
-                    if (i < 2 && neighbour.protein != null && neighbour.isHarvested) {
-                        break;
-                    } else if (i < 3 && neighbour.protein != null)
-                        break;
+				while (target != null && !target.isWall && target.organ == null) {
+					i++;
+					if (i < 2 && neighbour.protein != null && neighbour.isHarvested) {
+						break;
+					} else if (i < 3 && neighbour.protein != null)
+						break;
 
-                    if (i > 4) {
-                        if (neighbour != null && neighbour.protein == null && (game.myProteins.get("A") > 2 && game.myProteins.get("B") > 2 && game.myProteins.get("C") > 2 && game.myProteins.get("A") > 2)) {
-                            List<Option> rootOptions = ROOT.computeOptions(game, organ, target);
-                            for (Option rootOption : rootOptions) {
-                                score = Math.max(score, rootOption.score);
-                            }
-                        }
-                        target = game.grid.at(target, direction);
-                    }
+					if (i > 4) {
+						if (neighbour != null && neighbour.protein == null && (game.myProteins.get("A") > 2 && game.myProteins.get("B") > 2 && game.myProteins.get("C") > 2 && game.myProteins.get("A") > 2)) {
+							List<Option> rootOptions = ROOT.computeOptions(game, organ, target);
+							for (Option rootOption : rootOptions) {
+								score = Math.max(score, rootOption.score);
+							}
+						}
+						target = game.grid.at(target, direction);
+					}
 //                if (neighbour.isHarvested && neighbour.protein != null) {
 //                    score -= 11;
 //                }
-                }
-                options.add(initOption(organ, neighbour, score, this, direction));
+				}
+				options.add(initOption(organ, neighbour, score, this, direction));
 				System.err.println("score : " + score);
 
 			}
