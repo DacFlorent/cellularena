@@ -728,6 +728,8 @@ enum Actions {
 
 				if (neighbour != null && neighbour.protein != null && proteinCount > 2) {
 					score += 10 * proteinCount;
+				} else if (neighbour != null && neighbour.protein != null) {
+					score -= 10;
 				}
 
 				options.add(initOption(organ, neighbour, score, this, direction));
@@ -740,25 +742,17 @@ enum Actions {
 		public List<Option> computeOptions(Game game, Organ organ, Cell neighbour) {
 
 			// TODO: calculer le score du ROOT en fonction des proteines qui l'entourent.
+
 			// 3 cases autours :
 			// proteine ajoute 1 au score
 			// si proteine a une distance de 2 du root, on ajoute 2 supplémentaire
-			int score = Math.abs(organ.pos.x - neighbour.pos.x) + Math.abs(organ.pos.y - neighbour.pos.y);
 
-			for (int i = 0; i < 3; i++) {
-				if (neighbour.protein != null) {
-					score += 1;
-				} if (neighbour.protein != null && i == 2) {
-					score += 2;
-				}
-			}
+			int score = Math.abs(organ.pos.x - neighbour.pos.x) + Math.abs(organ.pos.y - neighbour.pos.y);
 
 			for (Direction direction : Direction.values()) {
 				Cell target = game.grid.at(neighbour, direction);
 				if (target != null && !target.isWall && target.organ == null) {
 					score += 1;
-				} else if ((organ.organType.equals("SPORER"))) {
-					score -= 5;
 				}
 			}
 			return List.of(initOption(organ, neighbour, score, this, null));
@@ -798,11 +792,11 @@ enum Actions {
 
 				while (target != null && !target.isWall && target.organ == null) {
 					i++;
-					if (i < 3 && neighbour.protein != null && neighbour.isHarvested) {
+					if (i < 2 && neighbour.protein != null && neighbour.isHarvested) {
 						break;
-					} else if (i < 3 && neighbour.protein == null) {
+					} else if (i < 3 && neighbour.protein != null)
 						break;
-					}
+
 					if (i > 4) {
 						if (neighbour != null && neighbour.protein == null) {
 							List<Option> rootOptions = ROOT.computeOptions(game, organ, target);
