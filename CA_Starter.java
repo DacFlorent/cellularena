@@ -804,22 +804,31 @@ enum Actions {
 		public List<Option> computeOptions(Game game, Organ organ, Cell neighbour) {
 
 			ArrayList<Option> options = new ArrayList<>();
+			int sporerCount = 1;
+
+			for (Organ organ1 : game.myOrgans) {
+				if (organ1.organType.equals("SPORER") && organ1.owner == 1) {
+					sporerCount++;
+				}
+			}
 			for (Direction direction : Direction.values()) {
 				Cell target = game.grid.at(neighbour, direction);
 				int i = 1;
 				int score = 0;
-				int sporerCount = 0;
 
-				if (organ.organType.equals("SPORER") && organ.owner == 1) {
-					continue;
-				}
+				if (organ.organType.equals("SPORER") && organ.owner == 1 && sporerCount > 1) {
+					// Si plus d'un "SPORER" t'appartient, réduire le score ou sortir de la boucle
+					score = 1; // Réduction du score (par exemple)
+					// Sortie de la boucle si trop de "SPORER" (si tu veux annuler l'option de sporer)
+				} else {
+
 
 				while (target != null && !target.isWall && target.organ == null) {
 					i++;
 					if (i < 2 && neighbour.protein != null && neighbour.isHarvested) {
-						break;
+						continue;
 					} else if (i < 3 && neighbour.protein != null)
-						break;
+						continue;
 
 					if (i > 4) {
 						if (neighbour != null && neighbour.protein == null && (game.myProteins.get("A") > 2 && game.myProteins.get("B") > 2 && game.myProteins.get("C") > 2 && game.myProteins.get("A") > 2)) {
@@ -832,7 +841,7 @@ enum Actions {
 					}
 //                if (neighbour.isHarvested && neighbour.protein != null) {
 //                    score -= 11;
-//                }
+                }
 				}
 				options.add(initOption(organ, neighbour, score, this, direction));
 				System.err.println("score : " + score);
