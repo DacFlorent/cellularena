@@ -688,14 +688,14 @@ enum Actions {
 		public List<Option> computeOptions(Game game, Organ organ, Cell neighbour) {
 			int score = 0;
 
-			if (neighbour.isHarvested && game.myProteins.get("A") > 1 && game.myProteins.get("B") > 1 && game.myProteins.get("C") > 1 && game.myProteins.get("A") > 1) {
+			if (neighbour.isHarvested && game.myProteins.get("A") > 1 && game.myProteins.get("B") > 1 && game.myProteins.get("C") > 1 && game.myProteins.get("D") > 1) {
 				// System.err.println("Cell at " + neighbour.pos.x + "," + neighbour.pos.y + " is already harvested.");
 				score = 1;
+			} else if (neighbour.protein != null && (game.myProteins.get("A") < 1 || game.myProteins.get("B") < 1 || game.myProteins.get("C") < 1 || game.myProteins.get("D") < 1)){
+				score = 50;
 			} else {
 				if (neighbour.protein == null) {
 					score = 3;
-				} else if (neighbour.protein != null & game.myProteins.get("A") < 1 && game.myProteins.get("B") < 1 && game.myProteins.get("C") < 1 && game.myProteins.get("A") < 1) {
-					score = 50;
 				} else {
 					for (Direction direction : Direction.values()) {
 						Cell target = game.grid.at(neighbour, direction);
