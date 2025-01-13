@@ -804,10 +804,13 @@ enum Actions {
 
 			ArrayList<Option> options = new ArrayList<>();
 			int rootCount = 0;
+			int sporerCount = 0;
 
 			for (Organ organ1 : game.myOrgans) {
 				if (organ1.organType.equals("ROOT") && organ1.owner == 1) {
 					rootCount++;
+				} else if (organ1.organType.equals("SPORER") && organ1.owner == 1) {
+					sporerCount++;
 				}
 			}
 			for (Direction direction : Direction.values()) {
@@ -816,9 +819,9 @@ enum Actions {
 				int score = 0;
 
 				if (organ.organType.equals("ROOT") && organ.owner == 1 && rootCount > 1) {
-					// Si plus d'un "SPORER" t'appartient, réduire le score ou sortir de la boucle
-					score = 1; // Réduction du score (par exemple)
-					// Sortie de la boucle si trop de "SPORER" (si tu veux annuler l'option de sporer)
+					score = 1;
+				} else if (organ.organType.equals("SPORER") && organ.owner == 1 && rootCount > 1) {
+					score = 1;
 				} else {
 
 
