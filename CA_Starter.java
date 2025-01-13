@@ -688,14 +688,16 @@ enum Actions {
 		public List<Option> computeOptions(Game game, Organ organ, Cell neighbour) {
 			int score = 0;
 
-			if (neighbour.isHarvested && game.myProteins.get("A") > 1 && game.myProteins.get("B") > 1 && game.myProteins.get("C") > 1 && game.myProteins.get("D") > 1) {
+			if (neighbour.isHarvested && game.myProteins.get("A") > 1 && game.myProteins.get("B") > 1 && game.myProteins.get("C") > 1
+				&& game.myProteins.get("D") > 1) {
 				// System.err.println("Cell at " + neighbour.pos.x + "," + neighbour.pos.y + " is already harvested.");
 				score = 1;
-			} else if (neighbour.protein != null && (game.myProteins.get("A") < 1 || game.myProteins.get("B") < 1 || game.myProteins.get("C") < 1 || game.myProteins.get("D") < 1)){
+			} else if (neighbour.protein != null && (game.myProteins.get("A") < 1 || game.myProteins.get("B") < 1 || game.myProteins.get("C") < 1
+				|| game.myProteins.get("D") < 1)) {
 				score = 50;
 			} else {
 				if (neighbour.protein == null) {
-					score = 3;
+					score = 2;
 				} else {
 					for (Direction direction : Direction.values()) {
 						Cell target = game.grid.at(neighbour, direction);
@@ -733,7 +735,7 @@ enum Actions {
 						score = 1;
 					} else {
 						proteinCount++;
-						score = 4;
+						score = 5;
 						System.err.println("proteinCount : " + proteinCount);
 					}
 
@@ -773,6 +775,7 @@ enum Actions {
 						score += 2;
 					}
 				}
+				System.err.println("SPORE SCORE : " + score);
 			}
 			return List.of(initOption(organ, neighbour, score, this, null));
 		}
@@ -804,32 +807,27 @@ enum Actions {
 		public List<Option> computeOptions(Game game, Organ organ, Cell neighbour) {
 
 			ArrayList<Option> options = new ArrayList<>();
-			int sporerCount = 1;
+			int rootCount = 1;
+			int score = 0;
 
-			for (Organ organ1 : game.myOrgans) {
-				if (organ1.organType.equals("SPORER") && organ1.owner == 1) {
-					sporerCount++;
-				}
-			}
-			for (Direction direction : Direction.values()) {
-				Cell target = game.grid.at(neighbour, direction);
-				int i = 1;
-				int score = 0;
 
-				if (organ.organType.equals("SPORER") && organ.owner == 1 && sporerCount > 1) {
-					score = 1;
-				} else {
+			if (organ.organType.equals("ROOT") && organ.owner == 1) {
+				rootCount++;
+				System.err.println("rootCount : " + rootCount);
+			} else if (organ.organType.equals("ROOT") && organ.owner == 1 && rootCount > 1) {
+				score = 1;
+			} else {
 
+				for (Direction direction : Direction.values()) {
+					Cell target = game.grid.at(neighbour, direction);
+					int i = 1;
 
 					while (target != null && !target.isWall && target.organ == null) {
 						i++;
-						if (i < 2 && neighbour.protein != null && neighbour.isHarvested) {
-							continue;
-						} else if (i < 3 && neighbour.protein != null)
-							continue;
 
 						if (i > 4) {
-							if (neighbour != null && neighbour.protein == null &&((game.myProteins.get("A") > 2 || game.myProteins.get("B") > 2 || game.myProteins.get("C") > 2 || game.myProteins.get("D") > 2))) {
+							if (neighbour != null && neighbour.protein == null && (game.myProteins.get("A") > 2 && game.myProteins.get("B") > 2
+								&& game.myProteins.get("C") > 2 && game.myProteins.get("D") > 2)) {
 								List<Option> rootOptions = ROOT.computeOptions(game, organ, target);
 								for (Option rootOption : rootOptions) {
 									score = Math.max(score, rootOption.score);
@@ -837,13 +835,11 @@ enum Actions {
 							}
 							target = game.grid.at(target, direction);
 						}
-						//                if (neighbour.isHarvested && neighbour.protein != null) {
-						//                    score -= 11;
 					}
-				}
-				options.add(initOption(organ, neighbour, score, this, direction));
-				System.err.println("score : " + score);
+					options.add(initOption(organ, neighbour, score, this, direction));
+					System.err.println("score SPORER : " + score);
 
+				}
 			}
 
 			return options;
