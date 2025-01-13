@@ -643,7 +643,7 @@ class Player {
 
 			int requiredActionsCount = in.nextInt(); // your number of organisms, output an action for each one in any order
 
-			game.displayGrid();
+//			game.displayGrid();
 			// game.displayOrgansOnGrid();
 			// game.displayProteinsOnGrid();
 			// game.displayProteinsInSpecificArea();
@@ -666,6 +666,7 @@ class Player {
 			game.displayOrgansOnGrid();
 			game.play(requiredActionsCount);
 			//			}
+
 
 		}
 	}
@@ -725,20 +726,18 @@ enum Actions {
 
 			int proteinCount = 0;
 			int score = 0;
+			Set<Cell> countedCells = new HashSet<>();
 
 			for (Direction direction : Direction.values()) {
 
 				Cell target = game.grid.at(neighbour, direction);
 
-				if (target != null && target.protein != null) {
-					if (target.isHarvested) {
-						score = 1;
-					} else {
-						proteinCount++;
-						score = 5;
-						System.err.println("proteinCount : " + proteinCount);
-					}
+				if (target != null && target.protein != null && !target.isHarvested && !countedCells.contains(target)) {
 
+					proteinCount++;
+					countedCells.add(target);
+					score = 5;
+					System.err.println("proteinCount : " + proteinCount);
 				}
 
 				if (neighbour != null && neighbour.protein != null && proteinCount > 2) {
@@ -753,11 +752,25 @@ enum Actions {
 		}
 	},
 	ROOT {
+
+		private static final Set<Organ> countedRoots = new HashSet<>();
+		private static int rootCount = 0;
+
 		@Override
 		public List<Option> computeOptions(Game game, Organ organ, Cell neighbour) {
 
 			// TODO: calculer le score du ROOT en fonction des proteines qui l'entourent.
+			if (organ.organType.equals("ROOT") && organ.owner == 1) {
 
+				if (!countedRoots.contains(organ)) {
+					countedRoots.add(organ);
+					rootCount++;
+				}
+			}
+
+			if (rootCount > 1) {
+				return List.of(initOption(organ, neighbour, 0, this, null));
+			}
 			// 3 cases autours :
 			// proteine ajoute 1 au score
 			// si proteine a une distance de 2 du root, on ajoute 2 supplémentaire
@@ -775,9 +788,10 @@ enum Actions {
 						score += 2;
 					}
 				}
-				System.err.println("SPORE SCORE : " + score);
 			}
+			System.err.println("SPORE SCORE : " + score);
 			return List.of(initOption(organ, neighbour, score, this, null));
+
 		}
 
 	}, TENTACLE {
@@ -803,20 +817,31 @@ enum Actions {
 		}
 
 	}, SPORER {
+		private static final Set<Organ> countedRoots = new HashSet<>();
+		private static int rootCount = 0;
+
 		@Override
 		public List<Option> computeOptions(Game game, Organ organ, Cell neighbour) {
 
 			ArrayList<Option> options = new ArrayList<>();
-			int rootCount = 1;
 			int score = 0;
 
 
 			if (organ.organType.equals("ROOT") && organ.owner == 1) {
-				rootCount++;
-				System.err.println("rootCount : " + rootCount);
-			} else if (organ.organType.equals("ROOT") && organ.owner == 1 && rootCount > 1) {
-				score = 1;
-			} else {
+				if (!countedRoots.contains(organ)) {
+					countedRoots.add(organ);
+					rootCount++;
+
+					if (rootCount >= 2) {
+						score = 1;
+						System.err.println("Limite atteinte : rootCount = " + rootCount + ", score = " + score);
+					} else {
+						System.err.println("ROOT ajouté : rootCount = " + rootCount);
+					}
+				} else {
+					System.err.println("ROOT déjà compté : " + organ);
+				}
+			}
 
 				for (Direction direction : Direction.values()) {
 					Cell target = game.grid.at(neighbour, direction);
@@ -840,7 +865,6 @@ enum Actions {
 					System.err.println("score SPORER : " + score);
 
 				}
-			}
 
 			return options;
 		}
