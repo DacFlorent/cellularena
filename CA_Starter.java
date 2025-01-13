@@ -733,7 +733,8 @@ enum Actions {
 						score = 1;
 					} else {
 						proteinCount++;
-						score = 5;
+						score = 4;
+						System.err.println("proteinCount : " + proteinCount);
 					}
 
 				}
@@ -803,13 +804,10 @@ enum Actions {
 		public List<Option> computeOptions(Game game, Organ organ, Cell neighbour) {
 
 			ArrayList<Option> options = new ArrayList<>();
-			int rootCount = 0;
-			int sporerCount = 0;
+			int sporerCount = 1;
 
 			for (Organ organ1 : game.myOrgans) {
-				if (organ1.organType.equals("ROOT") && organ1.owner == 1) {
-					rootCount++;
-				} else if (organ1.organType.equals("SPORER") && organ1.owner == 1) {
+				if (organ1.organType.equals("SPORER") && organ1.owner == 1) {
 					sporerCount++;
 				}
 			}
@@ -818,9 +816,7 @@ enum Actions {
 				int i = 1;
 				int score = 0;
 
-				if (organ.organType.equals("ROOT") && organ.owner == 1 && rootCount > 1) {
-					score = 1;
-				} else if (organ.organType.equals("SPORER") && organ.owner == 1 && rootCount > 1) {
+				if (organ.organType.equals("SPORER") && organ.owner == 1 && sporerCount > 1) {
 					score = 1;
 				} else {
 
@@ -833,7 +829,7 @@ enum Actions {
 							continue;
 
 						if (i > 4) {
-							if (neighbour != null && neighbour.protein == null && (game.myProteins.get("A") > 2 && game.myProteins.get("B") > 2 && game.myProteins.get("C") > 2 && game.myProteins.get("A") > 2)) {
+							if (neighbour != null && neighbour.protein == null &&((game.myProteins.get("A") > 2 || game.myProteins.get("B") > 2 || game.myProteins.get("C") > 2 || game.myProteins.get("D") > 2))) {
 								List<Option> rootOptions = ROOT.computeOptions(game, organ, target);
 								for (Option rootOption : rootOptions) {
 									score = Math.max(score, rootOption.score);
