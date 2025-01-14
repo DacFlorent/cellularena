@@ -715,7 +715,7 @@ enum Actions {
 			} else if (neighbour.protein != null && (game.myProteins.get("A") < 1 || game.myProteins.get("B") < 1 || game.myProteins.get("C") < 1
 				|| game.myProteins.get("D") < 1)) {
 				score = 50;
-			} else {
+			}
 				if (neighbour.protein == null) {
 					score = 2;
 				} else {
@@ -733,7 +733,6 @@ enum Actions {
 						}
 					}
 				}
-			}
 			return List.of(initOption(organ, neighbour, score, this, null));
 		}
 	},
@@ -849,7 +848,7 @@ enum Actions {
 						i++;
 
 						if (i > 4) {
-							if (neighbour != null && neighbour.protein == null && (game.myProteins.get("A") > 2 && game.myProteins.get("B") > 2
+							if (target != null && target.protein == null && (game.myProteins.get("A") > 2 && game.myProteins.get("B") > 2
 								&& game.myProteins.get("C") > 2 && game.myProteins.get("D") > 2)) {
 								List<Option> rootOptions = ROOT.computeOptions(game, organ, target);
 								for (Option rootOption : rootOptions) {
