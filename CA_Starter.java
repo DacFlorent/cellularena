@@ -140,7 +140,7 @@ class Game {
 	List<Organ> oppOrgans;
 	Map<Integer, Organ> organMap;
 	Map<String, Pos> proteinPositions;
-	private static int rootCount = 0;
+	private static int rootCount;
 
 	Game(int width, int height) {
 		grid = new Grid(width, height);
@@ -344,23 +344,19 @@ class Game {
 			.sorted(Comparator.comparingInt(o -> -o.score))
 			.toList();
 
-
-
-		int rootCount = 0;
+		int rootCount = 1;
 
 		for (Organ organ : myOrgans) {
 			if (organ != null && organ.organType.equals("ROOT") && organ.owner == 1) {
 				rootCount++;
 			}
 		}
-		System.err.println("Nombre de racines à traiter : " + rootCount);
 
 		Game.setRootCount(rootCount);
 
 		// Sélection des actions à réaliser par ordre pour chaque root
 		List<Integer> rootIdProcessed = new ArrayList<>();
 		int count = 0;
-
 
 		while (count < requiredActionsCount) {
 
@@ -667,7 +663,7 @@ class Player {
 
 			int requiredActionsCount = in.nextInt(); // your number of organisms, output an action for each one in any order
 
-//			game.displayGrid();
+			//			game.displayGrid();
 			// game.displayOrgansOnGrid();
 			// game.displayProteinsOnGrid();
 			// game.displayProteinsInSpecificArea();
@@ -690,7 +686,6 @@ class Player {
 			game.displayOrgansOnGrid();
 			game.play(requiredActionsCount);
 			//			}
-
 
 		}
 	}
@@ -761,7 +756,7 @@ enum Actions {
 					proteinCount++;
 					countedCells.add(target);
 					score = 5;
-					System.err.println("proteinCount : " + proteinCount);
+					System.err.println("proteinCount : " + target.pos.x + " " + target.pos.y + " " + proteinCount);
 				}
 
 				if (neighbour != null && neighbour.protein != null && proteinCount > 2) {
@@ -777,40 +772,32 @@ enum Actions {
 	},
 	ROOT {
 		private int rootCount;
+
 		@Override
 		public List<Option> computeOptions(Game game, Organ organ, Cell neighbour) {
 
-			int score = 0;
+			int score = Math.abs(organ.pos.x - neighbour.pos.x) + Math.abs(organ.pos.y - neighbour.pos.y);
 
 			// TODO: calculer le score du ROOT en fonction des proteines qui l'entourent.
-			if (organ.organType.equals("ROOT") && organ.owner == 1) {
-				if (rootCount >= 2) {
-					score = 1;
-					System.err.println("Limite atteinte : rootCount = " + rootCount + ", score = " + score);
-				}
-			}
-
-			if (rootCount > 1) {
-				return List.of(initOption(organ, neighbour, 0, this, null));
-			}
 			// 3 cases autours :
 			// proteine ajoute 1 au score
 			// si proteine a une distance de 2 du root, on ajoute 2 supplémentaire
+			if (rootCount <= 2) {
+				for (Direction direction : Direction.values()) {
+					Cell target = game.grid.at(neighbour, direction);
+					if (target != null && target.protein != null) {
+						score += 1;
+					}
 
-			for (Direction direction : Direction.values()) {
-				Cell target = game.grid.at(neighbour, direction);
-				if (target != null && target.protein != null) {
-					score += 1;
-				}
-
-				if (target != null) {
-					Cell distantTarget = game.grid.at(target, direction);
-					if (distantTarget != null && distantTarget.protein != null) {
-						score += 2;
+					if (target != null) {
+						Cell distantTarget = game.grid.at(target, direction);
+						if (distantTarget != null && distantTarget.protein != null) {
+							score += 2;
+						}
 					}
 				}
 			}
-//			System.err.println("SPORE SCORE : " + score);
+			//			System.err.println("SPORE SCORE : " + score);
 			return List.of(initOption(organ, neighbour, score, this, null));
 
 		}
@@ -838,7 +825,6 @@ enum Actions {
 		}
 
 	}, SPORER {
-
 		@Override
 		public List<Option> computeOptions(Game game, Organ organ, Cell neighbour) {
 
@@ -846,6 +832,7 @@ enum Actions {
 			int score = 0;
 
 			int rootCount = Game.getRootCount();
+			System.err.println("Nombre de racines à traiter : " + rootCount);
 
 			if (organ.organType.equals("ROOT") && organ.owner == 1) {
 				if (rootCount >= 2) {
@@ -853,7 +840,7 @@ enum Actions {
 					System.err.println("Limite atteinte : rootCount = " + rootCount + ", score = " + score);
 				}
 			}
-
+			if (rootCount <= 2) {
 				for (Direction direction : Direction.values()) {
 					Cell target = game.grid.at(neighbour, direction);
 					int i = 1;
@@ -873,10 +860,10 @@ enum Actions {
 						}
 					}
 					options.add(initOption(organ, neighbour, score, this, direction));
-//					System.err.println("score SPORER : " + score);
+					System.err.println("score SPORER : " + neighbour.pos.x + " " + neighbour.pos.y + " " + score);
 
 				}
-
+			}
 			return options;
 		}
 
