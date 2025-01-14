@@ -335,9 +335,21 @@ class Game {
 			.sorted(Comparator.comparingInt(o -> -o.score))
 			.toList();
 
+
+
+		int rootCount = 0;
+
+		for (Option option : options) {
+			Organ organ = organMap.get(option.organId);
+			if (organ != null && organ.organType.equals("ROOT") && organ.owner == 1) {
+				rootCount++;
+			}
+		}
+
 		// Sélection des actions à réaliser par ordre pour chaque root
 		List<Integer> rootIdProcessed = new ArrayList<>();
 		int count = 0;
+
 
 		while (count < requiredActionsCount) {
 
@@ -345,6 +357,7 @@ class Game {
 
 			action.doAction(bestOption);
 			count++;
+
 			Organ organ = organMap.get(bestOption.organId);
 			if (organ != null) {
 				rootIdProcessed.add(organ.rootId);
@@ -817,8 +830,7 @@ enum Actions {
 		}
 
 	}, SPORER {
-		private static final Set<Organ> countedRoots = new HashSet<>();
-		private static int rootCount = 0;
+		private int rootCount;
 
 		@Override
 		public List<Option> computeOptions(Game game, Organ organ, Cell neighbour) {
@@ -828,18 +840,9 @@ enum Actions {
 
 
 			if (organ.organType.equals("ROOT") && organ.owner == 1) {
-				if (!countedRoots.contains(organ)) {
-					countedRoots.add(organ);
-					rootCount++;
-
-					if (rootCount >= 2) {
-						score = 1;
-						System.err.println("Limite atteinte : rootCount = " + rootCount + ", score = " + score);
-					} else {
-						System.err.println("ROOT ajouté : rootCount = " + rootCount);
-					}
-				} else {
-					System.err.println("ROOT déjà compté : " + organ);
+				if (rootCount >= 2) {
+					score = 1;
+					System.err.println("Limite atteinte : rootCount = " + rootCount + ", score = " + score);
 				}
 			}
 
