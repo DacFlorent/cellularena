@@ -341,7 +341,10 @@ class Game {
 		// decisionnaire
 		options = options.stream()
 			//                .filter(o -> o.score > 1000)
-			.sorted(Comparator.comparingInt(o -> -o.score))
+			.sorted(
+				Comparator.comparingInt(o -> -o.score)
+					//.thenComparingInt(o -> distanceToEnnemy(o.neighbour))
+			)
 			.toList();
 
 		int rootCount = 1;
@@ -579,6 +582,7 @@ class Action {
 	// 7 Faire l'action
 	void doAction(Option bestOption) {
 		System.out.println(bestOption);
+		// TODO: décrémenter ton stock
 	}
 
 	// 8 Chosir la protein pour le sporer :
