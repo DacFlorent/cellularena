@@ -342,8 +342,10 @@ class Game {
 		options = options.stream()
 			//                .filter(o -> o.score > 1000)
 			.sorted(
-				Comparator.comparingInt(o -> -o.score)
-					//.thenComparingInt(o -> distanceToEnnemy(o.neighbour))
+				Comparator.comparingInt( o -> ((Option) o).score).reversed()
+					.thenComparingInt(o -> distanceToEnnemy(((Option) o).neighbour))
+
+					//.thenComparingInt((Option) o -> compareDistanceWithEnemy(o.neighbour))
 			)
 			.toList();
 
@@ -382,6 +384,10 @@ class Game {
 		// Add rootId dans le Set ID traités
 		// Attention gestion des cas de WAIT
 
+	}
+
+	private int distanceToEnnemy(Cell neighbour) {
+		return 0;
 	}
 
 	// 1 : Affichage de mes organes (owner = 1)
