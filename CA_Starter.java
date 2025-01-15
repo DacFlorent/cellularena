@@ -295,17 +295,11 @@ class Game {
 			if (closestEnemyOrgan != null) {
 				organ.cell.closestEnemyOrgan = closestEnemyOrgan;
 				organ.cell.minDistanceToEnemy = minDistance;
-
-				//				System.err.println(
-				//					"Organ " + organ.id + " closest enemy organ at (" + closestEnemyOrgan.x + ", " + closestEnemyOrgan.y + ") | Min distance: " + minDistance
-				//						+ " | Direction: " + organ.dir);
 			}
 
 			if (farthestEnemyOrgan != null) {
 				organ.cell.farthestEnemyOrgan = farthestEnemyOrgan;
 				organ.cell.maxDistanceToEnemy = maxDistance;
-
-				//				System.err.println("Organ " + organ.id + " farthest enemy organ at (" + farthestEnemyOrgan.x + ", " + farthestEnemyOrgan.y + ") | Max distance: " + maxDistance);
 			}
 		}
 	}
