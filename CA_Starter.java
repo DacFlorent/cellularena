@@ -790,7 +790,7 @@ enum Actions {
 			// proteine ajoute 1 au score
 			// si proteine a une distance de 2 du root, on ajoute 2 supplémentaire
 			System.err.println("rootCount : " + rootCount);
-			if (rootCount >= 2) {
+			if (rootCount >= 1) {
 				score = 0;
 				System.err.println("score SPORE : " + score);
 				System.err.println("rootCount" + rootCount);
@@ -848,7 +848,7 @@ enum Actions {
 			int rootCount = Game.getRootCount();
 //			System.err.println("Nombre de racines à traiter : " + rootCount);
 
-			if (organ.organType.equals("ROOT") && organ.owner == 1 && rootCount >= 2) {
+			if (organ.organType.equals("ROOT") && organ.owner == 1 && rootCount >= 1) {
 					score = 1;
 					System.err.println("Limite atteinte : rootCount = " + rootCount + ", score = " + score);
 
