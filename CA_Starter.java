@@ -835,12 +835,12 @@ enum Actions {
 			int score = 0;
 
 			int rootCount = Game.getRootCount();
-			System.err.println("Nombre de racines à traiter : " + rootCount);
+//			System.err.println("Nombre de racines à traiter : " + rootCount);
 
 			if (organ.organType.equals("ROOT") && organ.owner == 1) {
 				if (rootCount >= 2) {
 					score = 1;
-					System.err.println("Limite atteinte : rootCount = " + rootCount + ", score = " + score);
+//					System.err.println("Limite atteinte : rootCount = " + rootCount + ", score = " + score);
 				}
 			}
 			if (rootCount <= 2) {
@@ -850,6 +850,7 @@ enum Actions {
 
 					while (target != null && !target.isWall && target.organ == null) {
 						i++;
+						System.err.println( i + "target : " + target.pos.x + " " + target.pos.y);
 
 						if (i > 4) {
 							if (target != null && target.protein == null && (game.myProteins.get("A") > 2 && game.myProteins.get("B") > 2
@@ -857,13 +858,14 @@ enum Actions {
 								List<Option> rootOptions = ROOT.computeOptions(game, organ, target);
 								for (Option rootOption : rootOptions) {
 									score = Math.max(score, rootOption.score);
+									System.err.println("target : " + target.pos.x + " " + target.pos.y + " " + score);
 								}
 							}
-							target = game.grid.at(target, direction);
 						}
+						target = game.grid.at(target, direction);
 					}
 					options.add(initOption(organ, neighbour, score, this, direction));
-					System.err.println("score SPORER : " + neighbour.pos.x + " " + neighbour.pos.y + " " + score);
+//					System.err.println("score SPORER : " + neighbour.pos.x + " " + neighbour.pos.y + " " + score);
 
 				}
 			}
