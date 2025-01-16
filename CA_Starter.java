@@ -330,11 +330,14 @@ class Game {
 
 	public void play(int requiredActionsCount) {
 
+		int rootCount = 0;
+
 		for (Organ organ : myOrgans) {
 			if (organ != null && organ.organType.equals("ROOT") && organ.owner == 1) {
 				rootCount++;
 			}
 		}
+		Game.setRootCount(rootCount);
 		Action action = new Action(this);
 		Set<Cell> cellNeighbour = action.checkCellAround();
 
@@ -352,8 +355,6 @@ class Game {
 			)
 			.toList();
 
-
-		Game.setRootCount(rootCount);
 
 		// Sélection des actions à réaliser par ordre pour chaque root
 		List<Integer> rootIdProcessed = new ArrayList<>();
@@ -761,7 +762,7 @@ enum Actions {
 					proteinCount++;
 					countedCells.add(target);
 					score = 5;
-					System.err.println("proteinCount : " + target.pos.x + " " + target.pos.y + " " + proteinCount);
+//					System.err.println("proteinCount : " + target.pos.x + " " + target.pos.y + " " + proteinCount);
 				}
 
 				if (neighbour != null && neighbour.protein != null && proteinCount > 2) {
@@ -790,7 +791,7 @@ enum Actions {
 			System.err.println("rootCount : " + rootCount);
 			if (rootCount > 1) {
 				score = 0;
-				System.err.println("score SPORE : " + score);
+//				System.err.println("score SPORE : " + score);
 				System.err.println("rootCount" + rootCount);
 			} else
 			{
@@ -858,7 +859,7 @@ enum Actions {
 
 					while (target != null && !target.isWall && target.organ == null) {
 						i++;
-						System.err.println( i + "target : " + target.pos.x + " " + target.pos.y);
+//						System.err.println( i + "target : " + target.pos.x + " " + target.pos.y);
 
 						if (i > 4) {
 							if (target != null && target.protein == null && (game.myProteins.get("A") > 2 && game.myProteins.get("B") > 2
