@@ -1,5 +1,7 @@
+import java.rmi.ServerError;
 import java.util.*;
 import java.util.List;
+import java.util.Map.Entry;
 
 class Pos {
 
@@ -157,6 +159,7 @@ class Game {
 	}
 
 	public static int getRootCount() {
+		System.err.println("rooCount " + rootCount);
 		return rootCount;
 	}
 
@@ -326,6 +329,13 @@ class Game {
 	}
 
 	public void play(int requiredActionsCount) {
+		int rootCount = 0;
+
+		for (Organ organ : myOrgans) {
+			if (organ != null && organ.organType.equals("ROOT") && organ.owner == 1) {
+				rootCount++;
+			}
+		}
 		Action action = new Action(this);
 		Set<Cell> cellNeighbour = action.checkCellAround();
 
@@ -343,13 +353,6 @@ class Game {
 			)
 			.toList();
 
-		int rootCount = 1;
-
-		for (Organ organ : myOrgans) {
-			if (organ != null && organ.organType.equals("ROOT") && organ.owner == 1) {
-				rootCount++;
-			}
-		}
 
 		Game.setRootCount(rootCount);
 
@@ -564,7 +567,7 @@ class Action {
 			return false;
 		}
 
-		for (Map.Entry<Resources, Integer> entry : requiredResources.entrySet()) {
+		for (Entry<Resources, Integer> entry : requiredResources.entrySet()) {
 			Resources resource = entry.getKey();
 			int requiredAmount = entry.getValue();
 
@@ -779,13 +782,21 @@ enum Actions {
 		@Override
 		public List<Option> computeOptions(Game game, Organ organ, Cell neighbour) {
 
-			int score = Math.abs(organ.pos.x - neighbour.pos.x) + Math.abs(organ.pos.y - neighbour.pos.y);
 
+			int score;
+			int rootCount = Game.getRootCount();
 			// TODO: calculer le score du ROOT en fonction des proteines qui l'entourent.
 			// 3 cases autours :
 			// proteine ajoute 1 au score
 			// si proteine a une distance de 2 du root, on ajoute 2 supplémentaire
-			if (rootCount <= 2) {
+			System.err.println("rootCount : " + rootCount);
+			if (rootCount >= 2) {
+				score = 0;
+				System.err.println("score SPORE : " + score);
+				System.err.println("rootCount" + rootCount);
+			} else
+			{
+				score = Math.abs(organ.pos.x - neighbour.pos.x) + Math.abs(organ.pos.y - neighbour.pos.y);
 				for (Direction direction : Direction.values()) {
 					Cell target = game.grid.at(neighbour, direction);
 					if (target != null && target.protein != null) {
@@ -841,7 +852,7 @@ enum Actions {
 					score = 1;
 					System.err.println("Limite atteinte : rootCount = " + rootCount + ", score = " + score);
 
-			}
+			} else
 			if (rootCount <= 2) {
 				for (Direction direction : Direction.values()) {
 					Cell target = game.grid.at(neighbour, direction);
