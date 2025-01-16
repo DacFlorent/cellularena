@@ -837,11 +837,10 @@ enum Actions {
 			int rootCount = Game.getRootCount();
 //			System.err.println("Nombre de racines à traiter : " + rootCount);
 
-			if (organ.organType.equals("ROOT") && organ.owner == 1) {
-				if (rootCount >= 2) {
+			if (organ.organType.equals("ROOT") && organ.owner == 1 && rootCount >= 2) {
 					score = 1;
-//					System.err.println("Limite atteinte : rootCount = " + rootCount + ", score = " + score);
-				}
+					System.err.println("Limite atteinte : rootCount = " + rootCount + ", score = " + score);
+
 			}
 			if (rootCount <= 2) {
 				for (Direction direction : Direction.values()) {
